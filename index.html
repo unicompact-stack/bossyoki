@@ -9,23 +9,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
-  --border: #475569; --border-hover: #64748b;
-  --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
-  --accent: #6366f1; --accent2: #a78bfa; --accent-bg: rgba(99,102,241,0.15);
-  --green: #10b981; --green-bg: rgba(16,185,129,0.15);
-  --yellow: #f59e0b; --yellow-bg: rgba(245,158,11,0.15);
-  --red: #ef4444; --red-bg: rgba(239,68,68,0.15);
-  --radius: 12px; --radius-sm: 8px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --bg: #f8fafc; --surface: #ffffff; --surface2: #f1f5f9;
+  --border: #e2e8f0; --border-hover: #cbd5e1;
+  --text: #0f172a; --text2: #64748b; --text3: #94a3b8;
+  --accent: #6366f1; --accent2: #4f46e5; --accent-bg: rgba(99,102,241,0.1);
+  --green: #10b981; --green-bg: rgba(16,185,129,0.1);
+  --yellow: #f59e0b; --yellow-bg: rgba(245,158,11,0.1);
+  --red: #ef4444; --red-bg: rgba(239,68,68,0.1);
+  --purple: #8b5cf6; --purple-bg: rgba(139,92,246,0.1);
+  --radius: 16px; --radius-sm: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
   --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
 body::before {
   content: ''; position: fixed; inset: 0;
-  background: radial-gradient(ellipse at top, rgba(99,102,241,0.12), transparent 60%),
-              radial-gradient(ellipse at bottom right, rgba(167,139,250,0.08), transparent 50%);
+  background: radial-gradient(ellipse at top, rgba(99,102,241,0.05), transparent 60%),
+              radial-gradient(ellipse at bottom right, rgba(167,139,250,0.03), transparent 50%);
   pointer-events: none; z-index: 0;
 }
 ::-webkit-scrollbar { width: 6px; }
@@ -36,7 +37,7 @@ body::before {
 
 /* Sidebar */
 .sidebar {
-  width: 260px; background: rgba(30,41,59,0.8); backdrop-filter: blur(20px);
+  width: 260px; background: rgba(255,255,255,0.9); backdrop-filter: blur(20px);
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
 }
@@ -58,7 +59,7 @@ body::before {
 /* Main */
 .main { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
 .header {
-  background: rgba(30,41,59,0.8); backdrop-filter: blur(20px);
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border); padding: 16px 24px;
   display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 5;
@@ -242,7 +243,7 @@ body::before {
 }
 .mobile-nav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0;
-  background: rgba(30,41,59,0.95); backdrop-filter: blur(20px);
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(20px);
   border-top: 1px solid var(--border); z-index: 100;
   justify-content: space-around; padding: 8px 0 max(8px, env(safe-area-inset-bottom));
 }
@@ -501,14 +502,23 @@ function getWeekStart(d) {
 // ==================== TASKS ====================
 function renderTaskCard(t) {
   const overdue = !t.done && new Date(t.date) < new Date(new Date().toDateString());
+  const subtasksHtml = t.subtasks && t.subtasks.length ? `
+    <div class="task-subtasks" style="margin-top:8px;padding-left:20px">
+      ${t.subtasks.map((st,i) => `<div style="font-size:12px;color:var(--text2);margin-bottom:4px">
+        <input type="checkbox" ${t.subtaskDone&&t.subtaskDone[i]?'checked':''} onchange="toggleSubtask('${t.id}',${i})" style="margin-right:6px">
+        <span style="${t.subtaskDone&&t.subtaskDone[i]?'text-decoration:line-through;color:var(--text3)':''}">${esc(st)}</span>
+      </div>`).join('')}
+    </div>` : '';
   return `<div class="task-card${t.done?' completed':''}${overdue?' overdue':''}">
     <input type="checkbox" class="task-checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')">
     <div class="task-content">
       <div class="task-title${t.done?' completed':''}">${esc(t.title)}</div>
       <div class="task-meta">
         ${t.date ? `<span>📅 ${new Date(t.date).toLocaleDateString('ru-RU')}</span>` : ''}
+        ${t.category ? `<span>${t.category}</span>` : ''}
         ${t.priority ? `<span style="color:${t.priority==='high'?'var(--red)':t.priority==='medium'?'var(--yellow)':'var(--green)'}">${t.priority==='high'?'🔴 Высокий':t.priority==='medium'?'🟡 Средний':'🟢 Низкий'}</span>` : ''}
       </div>
+      ${subtasksHtml}
     </div>
     <div class="task-actions">
       <button class="btn btn-sm" onclick="editTask('${t.id}')">✏️</button>
@@ -559,6 +569,14 @@ function toggleTask(id) {
   const t = tasks.find(x => x.id === id);
   if (t) { t.done = !t.done; save(); render(); }
 }
+function toggleSubtask(taskId, subtaskIndex) {
+  const t = tasks.find(x => x.id === taskId);
+  if (t) {
+    if (!t.subtaskDone) t.subtaskDone = [];
+    t.subtaskDone[subtaskIndex] = !t.subtaskDone[subtaskIndex];
+    save(); render();
+  }
+}
 function deleteTask(id) {
   if (!confirm('Удалить задачу?')) return;
   tasks = tasks.filter(x => x.id !== id);
@@ -577,6 +595,7 @@ function openModal(html) {
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
 function openTaskModal(edit = null, presetDate = null) {
+  const categories = ['💼 Работа', '🏠 Личное', '📚 Учёба', '🛒 Покупки', '💪 Здоровье', '🎯 Проект'];
   const html = `<h3>${edit ? 'Редактировать' : 'Новая задача'}</h3>
     <div class="form-group">
       <label>Название</label>
@@ -600,6 +619,17 @@ function openTaskModal(edit = null, presetDate = null) {
         </select>
       </div>
     </div>
+    <div class="form-group">
+      <label>Категория</label>
+      <select id="f-category">
+        <option value="" ${!edit||!edit.category?'selected':''}>Без категории</option>
+        ${categories.map(c => `<option value="${c}" ${edit&&edit.category===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Подзадачи (по одной на строку)</label>
+      <textarea id="f-subtasks" placeholder="Подзадача 1\nПодзадача 2\nПодзадача 3">${edit&&edit.subtasks?edit.subtasks.join('\n'):''}</textarea>
+    </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal()">Отмена</button>
       <button class="btn btn-primary" onclick="saveTask('${edit?edit.id:''}')">${edit?'Сохранить':'Добавить'}</button>
@@ -611,11 +641,15 @@ function openTaskModal(edit = null, presetDate = null) {
 function saveTask(editId) {
   const title = document.getElementById('f-title').value.trim();
   if (!title) return;
+  const subtasksText = document.getElementById('f-subtasks').value.trim();
+  const subtasks = subtasksText ? subtasksText.split('\n').filter(s => s.trim()) : [];
   const data = {
     title,
     note: document.getElementById('f-note').value.trim(),
     date: document.getElementById('f-date').value,
-    priority: document.getElementById('f-priority').value
+    priority: document.getElementById('f-priority').value,
+    category: document.getElementById('f-category').value,
+    subtasks: subtasks
   };
   if (editId) {
     const t = tasks.find(x => x.id === editId);
@@ -725,6 +759,30 @@ function renderStats() {
   const overdue = tasks.filter(t => !t.done && new Date(t.date) < new Date(new Date().toDateString())).length;
   const rate = total > 0 ? Math.round((done/total)*100) : 0;
 
+  // Статистика по категориям
+  const categories = {};
+  tasks.forEach(t => {
+    const cat = t.category || 'Без категории';
+    if (!categories[cat]) categories[cat] = { total: 0, done: 0 };
+    categories[cat].total++;
+    if (t.done) categories[cat].done++;
+  });
+
+  // Streak (дни подряд с выполнением задач)
+  let streak = 0;
+  const todayDate = new Date();
+  for (let i = 0; i < 365; i++) {
+    const checkDate = new Date(todayDate);
+    checkDate.setDate(checkDate.getDate() - i);
+    const dateStr = fmtDate(checkDate);
+    const dayTasks = tasks.filter(t => t.date === dateStr);
+    const dayDone = dayTasks.filter(t => t.done).length;
+    if (dayDone > 0 || i === 0) {
+      if (dayDone > 0) streak++;
+      else break;
+    } else break;
+  }
+
   let html = `<div class="stats-grid">
     <div class="stat-card">
       <div class="stat-value">${total}</div>
@@ -743,16 +801,42 @@ function renderStats() {
       <div class="stat-label">Просрочено</div>
     </div>
   </div>
-  <div class="stat-card" style="margin-bottom:24px">
-    <div class="stat-value">${rate}%</div>
-    <div class="stat-label">Процент выполнения</div>
-    <div style="margin-top:12px;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
-      <div style="height:100%;width:${rate}%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:4px;transition:width 0.3s"></div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">${rate}%</div>
+      <div class="stat-label">Процент выполнения</div>
+      <div style="margin-top:12px;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${rate}%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:4px;transition:width 0.3s"></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--purple)">${streak}</div>
+      <div class="stat-label">🔥 Дней подряд</div>
     </div>
   </div>
-  <div class="empty">
+
+  ${Object.keys(categories).length > 0 ? `
+    <h4 style="margin:20px 0 12px;font-size:14px;color:var(--text2)">По категориям</h4>
+    <div class="stats-grid">
+      ${Object.entries(categories).map(([cat, data]) => `
+        <div class="stat-card" style="text-align:left">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px">${cat}</div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)">
+            <span>${data.done}/${data.total} выполнено</span>
+            <span>${data.total>0?Math.round((data.done/data.total)*100):0}%</span>
+          </div>
+          <div style="margin-top:6px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${data.total>0?Math.round((data.done/data.total)*100):0}%;background:var(--accent);border-radius:2px"></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  ` : ''}
+
+  <div class="empty" style="margin-top:24px">
     <div class="icon">📊</div>
-    <p>Выполняй задачи и这里的 статистика будет расти!</p>
+    <p>Выполняй задачи — статистика будет расти!</p>
   </div>`;
   c.innerHTML = html;
 }
