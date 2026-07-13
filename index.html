@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BossYoki — Тайм-менеджер</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+  --border: #475569; --border-hover: #64748b;
+  --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
+  --accent: #6366f1; --accent2: #a78bfa; --accent-bg: rgba(99,102,241,0.15);
+  --green: #10b981; --green-bg: rgba(16,185,129,0.15);
+  --yellow: #f59e0b; --yellow-bg: rgba(245,158,11,0.15);
+  --red: #ef4444; --red-bg: rgba(239,68,68,0.15);
+  --radius: 12px; --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background: radial-gradient(ellipse at top, rgba(99,102,241,0.12), transparent 60%),
+              radial-gradient(ellipse at bottom right, rgba(167,139,250,0.08), transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.app { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* Sidebar */
+.sidebar {
+  width: 260px; background: rgba(30,41,59,0.8); backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+}
+.sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
+.logo { font-size: 18px; font-weight: 700; color: var(--accent2); display: flex; align-items: center; gap: 8px; }
+.nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+.nav-section { margin-bottom: 16px; }
+.nav-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); padding: 8px 12px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s;
+  color: var(--text2); font-size: 14px; font-weight: 500; margin-bottom: 2px;
+}
+.nav-item:hover { background: rgba(99,102,241,0.1); color: var(--text); }
+.nav-item.active { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+.nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+.nav-item .badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+
+/* Main */
+.main { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
+.header {
+  background: rgba(30,41,59,0.8); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border); padding: 16px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 5;
+}
+.header h2 { font-size: 20px; font-weight: 700; }
+.header-time { font-size: 13px; color: var(--text2); margin-left: 12px; }
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+  border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; font-family: var(--font);
+}
+.btn:hover { border-color: var(--border-hover); background: var(--surface2); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: #5b4bd5; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger { border-color: var(--red); color: var(--red); }
+.btn-danger:hover { background: var(--red-bg); }
+
+/* Tab Content */
+.tab-content { display: none; animation: fadeIn 0.2s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Calendar Controls */
+.calendar-controls { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+.view-toggle { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px; }
+.view-btn {
+  padding: 6px 14px; border: none; background: transparent; border-radius: 6px;
+  cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2); transition: all 0.15s;
+}
+.view-btn:hover { color: var(--text); }
+.view-btn.active { background: var(--accent); color: #fff; }
+.period-nav { display: flex; align-items: center; gap: 8px; }
+.period-label { font-weight: 600; font-size: 15px; min-width: 160px; text-align: center; }
+
+/* Calendar Grid */
+.calendar-grid { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.calendar-header { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 8px; }
+.calendar-day-name { text-align: center; padding: 8px; font-weight: 600; font-size: 12px; color: var(--text3); text-transform: uppercase; }
+.calendar-days { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.calendar-day {
+  aspect-ratio: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 6px; cursor: pointer; transition: all 0.15s;
+  display: flex; flex-direction: column; align-items: center; position: relative;
+}
+.calendar-day:hover { border-color: var(--accent); background: var(--accent-bg); transform: translateY(-1px); }
+.calendar-day.today { border: 2px solid var(--accent); box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
+.calendar-day.other-month { opacity: 0.25; }
+.calendar-day-number { font-weight: 600; font-size: 13px; }
+.calendar-day-dots { display: flex; gap: 3px; margin-top: 4px; }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.dot.overdue { background: var(--red); }
+
+/* Week View */
+.week-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 8px; }
+.week-day-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  min-height: 200px; padding: 12px; transition: all 0.15s;
+}
+.week-day-card:hover { border-color: var(--accent); }
+.week-day-card.today { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
+.week-day-header { font-weight: 600; font-size: 13px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.week-task-item {
+  background: var(--surface2); padding: 6px 8px; border-radius: 6px;
+  margin-bottom: 4px; font-size: 12px; cursor: pointer; transition: all 0.15s;
+}
+.week-task-item:hover { background: var(--accent-bg); }
+
+/* Day View */
+.day-task-list { display: flex; flex-direction: column; gap: 8px; }
+
+/* Task Cards */
+.task-list { display: flex; flex-direction: column; gap: 8px; }
+.task-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 16px; display: flex; align-items: center; gap: 12px; transition: all 0.15s;
+}
+.task-card:hover { border-color: var(--accent); transform: translateX(2px); }
+.task-card.completed { opacity: 0.5; }
+.task-card.overdue { border-left: 3px solid var(--red); }
+.task-checkbox { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent); }
+.task-content { flex: 1; }
+.task-title { font-size: 14px; font-weight: 500; }
+.task-title.completed { text-decoration: line-through; color: var(--text3); }
+.task-meta { font-size: 12px; color: var(--text2); margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap; }
+.task-actions { display: flex; gap: 6px; }
+
+/* Chat Bot */
+.chat-container {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  display: flex; flex-direction: column; height: calc(100vh - 200px);
+}
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.chat-message { display: flex; gap: 10px; max-width: 80%; animation: fadeIn 0.2s ease; }
+.chat-message.bot { align-self: flex-start; }
+.chat-message.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--accent);
+  display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; color: #fff;
+}
+.chat-bubble {
+  padding: 10px 14px; border-radius: 12px; background: var(--surface2);
+  border: 1px solid var(--border); font-size: 14px; line-height: 1.5;
+}
+.chat-message.user .chat-bubble { background: var(--accent); color: #fff; border-color: var(--accent); }
+.chat-input-container { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.chat-input {
+  flex: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface2); color: var(--text); font-size: 14px; outline: none;
+}
+.chat-input:focus { border-color: var(--accent); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+  z-index: 100; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+  box-shadow: var(--shadow); transform: translateY(20px); transition: transform 0.2s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; }
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 14px; font-family: var(--font); outline: none;
+}
+.form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+.form-group textarea { min-height: 80px; resize: vertical; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 200;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 20px; font-size: 13px; font-weight: 500; box-shadow: var(--shadow);
+  transform: translateY(20px); opacity: 0; transition: all 0.3s;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-color: var(--green); }
+
+/* FAB */
+.fab {
+  position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px;
+  border-radius: 50%; background: var(--accent); color: #fff; border: none;
+  font-size: 24px; cursor: pointer; box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+  transition: all 0.2s; z-index: 50; display: flex; align-items: center; justify-content: center;
+}
+.fab:hover { transform: scale(1.1); }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; text-align: center;
+}
+.stat-value { font-size: 32px; font-weight: 700; color: var(--accent2); }
+.stat-label { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+/* Empty */
+.empty { text-align: center; padding: 48px 24px; color: var(--text3); }
+.empty .icon { font-size: 48px; margin-bottom: 12px; }
+.empty p { font-size: 14px; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; padding-bottom: 70px; }
+  .week-grid { grid-template-columns: repeat(2,1fr); }
+  .mobile-nav { display: flex !important; }
+}
+.mobile-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(30,41,59,0.95); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border); z-index: 100;
+  justify-content: space-around; padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+}
+.mobile-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s;
+  color: var(--text3); font-size: 10px; font-weight: 500; border: none; background: none;
+}
+.mobile-nav-item:hover, .mobile-nav-item.active { color: var(--accent); }
+.mobile-nav-item .icon { font-size: 20px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">🎯 BossYoki</div>
+    </div>
+    <div class="nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Главное</div>
+        <div class="nav-item active" data-tab="calendar"><span class="icon">📅</span> Календарь</div>
+        <div class="nav-item" data-tab="tasks"><span class="icon">📝</span> Задачи</div>
+        <div class="nav-item" data-tab="urgent"><span class="icon">⏰</span> Срочные</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Инструменты</div>
+        <div class="nav-item" data-tab="chatbot"><span class="icon">🤖</span> AI-чат</div>
+        <div class="nav-item" data-tab="stats"><span class="icon">📊</span> Статистика</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="header">
+      <div style="display:flex;align-items:center">
+        <h2 id="pageTitle">Календарь</h2>
+        <span class="header-time" id="headerTime"></span>
+      </div>
+      <button class="btn btn-primary" onclick="openTaskModal()">+ Задача</button>
+    </header>
+    <div class="content">
+      <div class="tab-content active" id="tab-calendar"></div>
+      <div class="tab-content" id="tab-tasks"></div>
+      <div class="tab-content" id="tab-urgent"></div>
+      <div class="tab-content" id="tab-chatbot"></div>
+      <div class="tab-content" id="tab-stats"></div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" onclick="openTaskModal()">+</button>
+
+<nav class="mobile-nav" id="mobileNav">
+  <button class="mobile-nav-item active" data-tab="calendar"><span class="icon">📅</span>Календарь</button>
+  <button class="mobile-nav-item" data-tab="tasks"><span class="icon">📝</span>Задачи</button>
+  <button class="mobile-nav-item" data-tab="urgent"><span class="icon">⏰</span>Срочные</button>
+  <button class="mobile-nav-item" data-tab="chatbot"><span class="icon">🤖</span>Чат</button>
+  <button class="mobile-nav-item" data-tab="stats"><span class="icon">📊</span>Статистика</button>
+</nav>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== STATE ====================
+let tasks = [];
+let currentView = 'month';
+let currentDate = new Date();
+let currentTab = 'calendar';
+
+const DAYS_RU = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function fmtDate(d) { return d.toISOString().slice(0,10); }
+function isToday(d) { return fmtDate(d) === fmtDate(new Date()); }
+
+// ==================== STORAGE ====================
+function loadTasks() {
+  tasks = JSON.parse(localStorage.getItem('bossyoki_tasks') || '[]');
+}
+function save() {
+  localStorage.setItem('bossyoki_tasks', JSON.stringify(tasks));
+}
+
+// ==================== TIME ====================
+function updateTime() {
+  const now = new Date();
+  document.getElementById('headerTime').textContent = now.toLocaleDateString('ru-RU', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+}
+setInterval(updateTime, 1000);
+updateTime();
+
+// ==================== NAVIGATION ====================
+document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    currentTab = item.dataset.tab;
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + currentTab).classList.add('active');
+    const titles = { calendar: 'Календарь', tasks: 'Задачи', urgent: 'Срочные', chatbot: 'AI-чат', stats: 'Статистика' };
+    document.getElementById('pageTitle').textContent = titles[currentTab] || 'BossYoki';
+    render();
+    document.querySelectorAll('.mobile-nav-item').forEach(m => m.classList.toggle('active', m.dataset.tab === currentTab));
+  });
+});
+
+document.querySelectorAll('.mobile-nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.mobile-nav-item').forEach(m => m.classList.remove('active'));
+    item.classList.add('active');
+    currentTab = item.dataset.tab;
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + currentTab).classList.add('active');
+    const titles = { calendar: 'Календарь', tasks: 'Задачи', urgent: 'Срочные', chatbot: 'AI-чат', stats: 'Статистика' };
+    document.getElementById('pageTitle').textContent = titles[currentTab] || 'BossYoki';
+    render();
+    document.querySelectorAll('.nav-item[data-tab]').forEach(n => n.classList.toggle('active', n.dataset.tab === currentTab));
+  });
+});
+
+// ==================== RENDER ====================
+function render() {
+  if (currentTab === 'calendar') renderCalendar();
+  else if (currentTab === 'tasks') renderAllTasks();
+  else if (currentTab === 'urgent') renderUrgent();
+  else if (currentTab === 'chatbot') renderChatbot();
+  else if (currentTab === 'stats') renderStats();
+}
+
+// ==================== CALENDAR ====================
+function renderCalendar() {
+  const c = document.getElementById('tab-calendar');
+  let navHtml = '';
+  if (currentView === 'month') {
+    navHtml = `<button class="btn" onclick="currentDate.setMonth(currentDate.getMonth()-1);render()">←</button>
+      <span class="period-label">${MONTHS_RU[currentDate.getMonth()]} ${currentDate.getFullYear()}</span>
+      <button class="btn" onclick="currentDate.setMonth(currentDate.getMonth()+1);render()">→</button>`;
+  } else if (currentView === 'week') {
+    const ws = getWeekStart(currentDate);
+    const we = new Date(ws); we.setDate(we.getDate()+6);
+    navHtml = `<button class="btn" onclick="currentDate.setDate(currentDate.getDate()-7);render()">←</button>
+      <span class="period-label">${ws.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})} — ${we.toLocaleDateString('ru-RU',{day:'numeric',month:'short',year:'numeric'})}</span>
+      <button class="btn" onclick="currentDate.setDate(currentDate.getDate()+7);render()">→</button>`;
+  } else if (currentView === 'day') {
+    navHtml = `<button class="btn" onclick="currentDate.setDate(currentDate.getDate()-1);render()">←</button>
+      <span class="period-label">${currentDate.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span>
+      <button class="btn" onclick="currentDate.setDate(currentDate.getDate()+1);render()">→</button>`;
+  }
+
+  let html = `<div class="calendar-controls">
+    <div class="view-toggle">
+      <button class="view-btn ${currentView==='month'?'active':''}" onclick="currentView='month';render()">Месяц</button>
+      <button class="view-btn ${currentView==='week'?'active':''}" onclick="currentView='week';render()">Неделя</button>
+      <button class="view-btn ${currentView==='day'?'active':''}" onclick="currentView='day';render()">День</button>
+    </div>
+    <div class="period-nav">${navHtml}</div>
+    <button class="btn" onclick="currentDate=new Date();render()">Сегодня</button>
+  </div>`;
+
+  if (currentView === 'month') html += renderMonthView();
+  else if (currentView === 'week') html += renderWeekView();
+  else if (currentView === 'day') html += renderDayView();
+
+  c.innerHTML = html;
+}
+
+function renderMonthView() {
+  const y = currentDate.getFullYear(), m = currentDate.getMonth();
+  const first = new Date(y, m, 1), last = new Date(y, m+1, 0);
+  const startDay = (first.getDay() || 7) - 1;
+  const daysInMonth = last.getDate();
+  const today = new Date();
+
+  let html = `<div class="calendar-grid">
+    <div class="calendar-header">${DAYS_RU.map(d => `<div class="calendar-day-name">${d}</div>`).join('')}</div>
+    <div class="calendar-days">`;
+
+  for (let i = 0; i < startDay; i++) {
+    const d = new Date(y, m, -startDay+i+1), ds = fmtDate(d);
+    const dt = tasks.filter(t => t.date === ds);
+    html += `<div class="calendar-day other-month" onclick="showDayModal('${ds}')">
+      <div class="calendar-day-number">${d.getDate()}</div>
+      ${dt.length ? `<div class="calendar-day-dots">${dt.slice(0,3).map(t=>`<div class="dot${!t.done&&new Date(t.date)<today?' overdue':''}"></div>`).join('')}</div>` : ''}
+    </div>`;
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(y, m, d), ds = fmtDate(date);
+    const dt = tasks.filter(t => t.date === ds);
+    const todayCls = isToday(date) ? ' today' : '';
+    html += `<div class="calendar-day${todayCls}" onclick="showDayModal('${ds}')">
+      <div class="calendar-day-number">${d}</div>
+      ${dt.length ? `<div class="calendar-day-dots">${dt.slice(0,3).map(t=>`<div class="dot${!t.done&&new Date(t.date)<today?' overdue':''}"></div>`).join('')}</div>` : ''}
+    </div>`;
+  }
+  const remaining = 42 - (startDay + daysInMonth);
+  for (let i = 1; i <= remaining; i++) {
+    const d = new Date(y, m+1, i), ds = fmtDate(d);
+    const dt = tasks.filter(t => t.date === ds);
+    html += `<div class="calendar-day other-month" onclick="showDayModal('${ds}')">
+      <div class="calendar-day-number">${d.getDate()}</div>
+      ${dt.length ? `<div class="calendar-day-dots">${dt.slice(0,3).map(t=>`<div class="dot${!t.done&&new Date(t.date)<today?' overdue':''}"></div>`).join('')}</div>` : ''}
+    </div>`;
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderWeekView() {
+  const ws = getWeekStart(currentDate);
+  const today = new Date();
+  let html = '<div class="week-grid">';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(ws); d.setDate(d.getDate()+i);
+    const ds = fmtDate(d);
+    const dt = tasks.filter(t => t.date === ds);
+    const todayCls = isToday(d) ? ' today' : '';
+    html += `<div class="week-day-card${todayCls}">
+      <div class="week-day-header">${DAYS_RU[i]} ${d.getDate()}</div>
+      ${dt.map(t => `<div class="week-task-item" onclick="editTask('${t.id}')">${t.done?'✓':'○'} ${esc(t.title)}</div>`).join('')}
+      ${!dt.length ? '<div style="font-size:12px;color:var(--text3);opacity:0.5">Нет задач</div>' : ''}
+    </div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function renderDayView() {
+  const ds = fmtDate(currentDate);
+  const dt = tasks.filter(t => t.date === ds);
+  let html = '<div class="day-task-list">';
+  if (dt.length) {
+    dt.forEach(t => { html += renderTaskCard(t); });
+  } else {
+    html += '<div class="empty"><div class="icon">📅</div><p>На этот день задач нет</p></div>';
+  }
+  html += `<div style="margin-top:16px"><button class="btn btn-primary" onclick="openTaskModal(null,'${ds}')">+ Добавить задачу</button></div>`;
+  html += '</div>';
+  return html;
+}
+
+function getWeekStart(d) {
+  const dt = new Date(d);
+  const day = dt.getDay();
+  dt.setDate(dt.getDate() - (day === 0 ? 6 : day - 1));
+  return dt;
+}
+
+// ==================== TASKS ====================
+function renderTaskCard(t) {
+  const overdue = !t.done && new Date(t.date) < new Date(new Date().toDateString());
+  return `<div class="task-card${t.done?' completed':''}${overdue?' overdue':''}">
+    <input type="checkbox" class="task-checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')">
+    <div class="task-content">
+      <div class="task-title${t.done?' completed':''}">${esc(t.title)}</div>
+      <div class="task-meta">
+        ${t.date ? `<span>📅 ${new Date(t.date).toLocaleDateString('ru-RU')}</span>` : ''}
+        ${t.priority ? `<span style="color:${t.priority==='high'?'var(--red)':t.priority==='medium'?'var(--yellow)':'var(--green)'}">${t.priority==='high'?'🔴 Высокий':t.priority==='medium'?'🟡 Средний':'🟢 Низкий'}</span>` : ''}
+      </div>
+    </div>
+    <div class="task-actions">
+      <button class="btn btn-sm" onclick="editTask('${t.id}')">✏️</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTask('${t.id}')">🗑</button>
+    </div>
+  </div>`;
+}
+
+function renderAllTasks() {
+  const c = document.getElementById('tab-tasks');
+  const sorted = [...tasks].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  let html = '';
+  if (sorted.length) {
+    html = '<div class="task-list">' + sorted.map(t => renderTaskCard(t)).join('') + '</div>';
+  } else {
+    html = '<div class="empty"><div class="icon">📝</div><p>Нет задач. Нажмите "+" чтобы добавить</p></div>';
+  }
+  c.innerHTML = html;
+}
+
+function renderUrgent() {
+  const c = document.getElementById('tab-urgent');
+  const now = new Date();
+  const today = fmtDate(now);
+  const tomorrow = fmtDate(new Date(now.getTime() + 86400000));
+  const urgent = tasks.filter(t => !t.done && (t.date === today || t.date === tomorrow));
+  let html = '';
+  if (urgent.length) {
+    html = '<div class="task-list">' + urgent.map(t => {
+      const isTodayTask = t.date === today;
+      return `<div class="task-card overdue">
+        <input type="checkbox" class="task-checkbox" onchange="toggleTask('${t.id}')">
+        <div class="task-content">
+          <div class="task-title">${esc(t.title)}</div>
+          <div class="task-meta">
+            <span style="color:${isTodayTask?'var(--red)':'var(--yellow)'}">${isTodayTask?'🔴 Сегодня':'🟡 Завтра'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  } else {
+    html = '<div class="empty"><div class="icon">✅</div><p>Нет срочных задач — молодец!</p></div>';
+  }
+  c.innerHTML = html;
+}
+
+function toggleTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (t) { t.done = !t.done; save(); render(); }
+}
+function deleteTask(id) {
+  if (!confirm('Удалить задачу?')) return;
+  tasks = tasks.filter(x => x.id !== id);
+  save(); render(); toast('Задача удалена');
+}
+function editTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (t) openTaskModal(t);
+}
+
+// ==================== MODAL ====================
+function openModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function openTaskModal(edit = null, presetDate = null) {
+  const html = `<h3>${edit ? 'Редактировать' : 'Новая задача'}</h3>
+    <div class="form-group">
+      <label>Название</label>
+      <input id="f-title" value="${edit ? esc(edit.title) : ''}" placeholder="Что нужно сделать?">
+    </div>
+    <div class="form-group">
+      <label>Заметка</label>
+      <textarea id="f-note" placeholder="Детали...">${edit ? esc(edit.note||'') : ''}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Дата</label>
+        <input type="date" id="f-date" value="${edit ? edit.date : (presetDate || fmtDate(new Date()))}">
+      </div>
+      <div class="form-group">
+        <label>Приоритет</label>
+        <select id="f-priority">
+          <option value="low" ${edit&&edit.priority==='low'?'selected':''}>🟢 Низкий</option>
+          <option value="medium" ${edit&&edit.priority==='medium'?'selected':''}>🟡 Средний</option>
+          <option value="high" ${edit&&edit.priority==='high'?'selected':''}>🔴 Высокий</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="saveTask('${edit?edit.id:''}')">${edit?'Сохранить':'Добавить'}</button>
+    </div>`;
+  openModal(html);
+  setTimeout(() => document.getElementById('f-title').focus(), 100);
+}
+
+function saveTask(editId) {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) return;
+  const data = {
+    title,
+    note: document.getElementById('f-note').value.trim(),
+    date: document.getElementById('f-date').value,
+    priority: document.getElementById('f-priority').value
+  };
+  if (editId) {
+    const t = tasks.find(x => x.id === editId);
+    if (t) Object.assign(t, data);
+  } else {
+    tasks.push({ id: genId(), ...data, done: false, created: new Date().toISOString() });
+  }
+  closeModal(); save(); render();
+  toast(editId ? 'Задача обновлена' : 'Задача добавлена');
+}
+
+// ==================== DAY MODAL ====================
+function showDayModal(dateStr) {
+  const dt = tasks.filter(t => t.date === dateStr);
+  const date = new Date(dateStr + 'T00:00:00');
+  let html = `<h3>📋 ${date.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</h3>`;
+  if (dt.length) {
+    html += '<div class="task-list">' + dt.map(t => renderTaskCard(t)).join('') + '</div>';
+  } else {
+    html += '<div class="empty"><p>Нет задач</p></div>';
+  }
+  html += `<div style="margin-top:16px;display:flex;gap:8px">
+    <button class="btn btn-primary" onclick="closeModal();openTaskModal(null,'${dateStr}')">+ Задача</button>
+    <button class="btn" onclick="closeModal()">Закрыть</button>
+  </div>`;
+  openModal(html);
+}
+
+// ==================== CHATBOT ====================
+let chatHistory = [];
+
+function renderChatbot() {
+  const c = document.getElementById('tab-chatbot');
+  let html = `<div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+      ${chatHistory.length ? chatHistory.map(m => `
+        <div class="chat-message ${m.role}">
+          <div class="chat-avatar">${m.role==='bot'?'🎯':'👤'}</div>
+          <div class="chat-bubble">${esc(m.content)}</div>
+        </div>
+      `).join('') : `
+        <div class="chat-message bot">
+          <div class="chat-avatar">🎯</div>
+          <div class="chat-bubble">Привет! Я BossYoki — твой AI-тайм-менеджер. Спроси меня что-нибудь или скажи "добавь задачу [название]"</div>
+        </div>
+      `}
+    </div>
+    <div class="chat-input-container">
+      <input class="chat-input" id="chatInput" placeholder="Напиши сообщение..." onkeypress="if(event.key==='Enter')sendChat()">
+      <button class="btn btn-primary" onclick="sendChat()">→</button>
+    </div>
+  </div>`;
+  c.innerHTML = html;
+  const msgs = document.getElementById('chatMessages');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  chatHistory.push({ role: 'user', content: text });
+  input.value = '';
+
+  // Простая логика ответа
+  let reply = '';
+  const lower = text.toLowerCase();
+
+  if (lower.includes('добавь задачу') || lower.includes('новая задача')) {
+    const taskText = text.replace(/добавь задачу|новая задача/gi, '').trim();
+    if (taskText) {
+      tasks.push({ id: genId(), title: taskText, date: fmtDate(new Date()), priority: 'medium', done: false, created: new Date().toISOString() });
+      save();
+      reply = `Готово! Задача "${taskText}" добавлена на сегодня. Удачи! 💪`;
+    } else {
+      reply = 'Что нужно сделать? Напиши название задачи.';
+    }
+  } else if (lower.includes('покажи задачи') || lower.includes('список задач')) {
+    const today = tasks.filter(t => t.date === fmtDate(new Date()) && !t.done);
+    if (today.length) {
+      reply = `На сегодня ${today.length} задач:\n` + today.map((t,i) => `${i+1}. ${t.title}`).join('\n');
+    } else {
+      reply = 'На сегодня задач нет — можешь расслабиться! 🎉';
+    }
+  } else if (lower.includes('сколько задач')) {
+    const active = tasks.filter(t => !t.done).length;
+    const done = tasks.filter(t => t.done).length;
+    reply = `Активных: ${active}, Выполнено: ${done}. Всего: ${tasks.length}`;
+  } else if (lower.includes('помощь') || lower.includes('что умеешь')) {
+    reply = 'Я могу:\n- Добавлять задачи: "добавь задачу X"\n- Показывать список: "покажи задачи"\n- Считать задачи: "сколько задач"\n- Просто поболтать!';
+  } else {
+    reply = 'Интересно! Я пока учусь, но уже могу добавлять задачи. Попробуй: "добавь задачу купить продукты"';
+  }
+
+  chatHistory.push({ role: 'bot', content: reply });
+  renderChatbot();
+}
+
+// ==================== STATS ====================
+function renderStats() {
+  const c = document.getElementById('tab-stats');
+  const total = tasks.length;
+  const done = tasks.filter(t => t.done).length;
+  const active = total - done;
+  const today = tasks.filter(t => t.date === fmtDate(new Date())).length;
+  const overdue = tasks.filter(t => !t.done && new Date(t.date) < new Date(new Date().toDateString())).length;
+  const rate = total > 0 ? Math.round((done/total)*100) : 0;
+
+  let html = `<div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">${total}</div>
+      <div class="stat-label">Всего задач</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--green)">${done}</div>
+      <div class="stat-label">Выполнено</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--yellow)">${active}</div>
+      <div class="stat-label">Активных</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:var(--red)">${overdue}</div>
+      <div class="stat-label">Просрочено</div>
+    </div>
+  </div>
+  <div class="stat-card" style="margin-bottom:24px">
+    <div class="stat-value">${rate}%</div>
+    <div class="stat-label">Процент выполнения</div>
+    <div style="margin-top:12px;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+      <div style="height:100%;width:${rate}%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:4px;transition:width 0.3s"></div>
+    </div>
+  </div>
+  <div class="empty">
+    <div class="icon">📊</div>
+    <p>Выполняй задачи и这里的 статистика будет расти!</p>
+  </div>`;
+  c.innerHTML = html;
+}
+
+// ==================== TOAST ====================
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ==================== INIT ====================
+loadTasks();
+render();
+</script>
+</body>
+</html>
