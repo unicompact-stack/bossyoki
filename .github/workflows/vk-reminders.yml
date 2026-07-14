@@ -20,10 +20,12 @@ jobs:
           VK_USER_ID: ${{ secrets.VK_USER_ID }}
         run: |
           if [ ! -f tasks.json ]; then
+            RANDOM_ID=$((RANDOM * RANDOM % 2147483647))
             curl -s -X POST "https://api.vk.com/method/messages.send" \
               -d "user_id=$VK_USER_ID" \
               --data-urlencode "message=📋 Проверь задачи на сайте!" \
               -d "access_token=$VK_TOKEN" \
+              -d "random_id=$RANDOM_ID" \
               -d "v=5.199"
             exit 0
           fi
@@ -67,9 +69,12 @@ jobs:
           messages.append(random.choice(motivation))
           
           final_message = "\n".join(messages)
+          import time
+          random_id = int(time.time() * 1000) % 2147483647
           data = urllib.parse.urlencode({
               'user_id': VK_USER_ID, 'message': final_message,
-              'access_token': VK_TOKEN, 'v': '5.199'
+              'access_token': VK_TOKEN, 'v': '5.199',
+              'random_id': random_id
           }).encode()
           req = urllib.request.Request('https://api.vk.com/method/messages.send', data=data)
           urllib.request.urlopen(req)
