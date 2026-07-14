@@ -2,33 +2,76 @@ name: VK Reminders
 
 on:
   schedule:
+    - cron: '0 7 * * *'
     - cron: '0 9 * * *'
+    - cron: '0 18 * * *'
   workflow_dispatch:
 
 jobs:
   remind:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Send VK reminders
-      env:
-        VK_TOKEN: ${{ secrets.VK_TOKEN }}
-        VK_USER_ID: ${{ secrets.VK_USER_ID }}
-      run: |
-        MESSAGES=(
-        "☑ BossYoki напоминает: ты справишься! Проверь задачи!"
-        "☑ Не откладывай! Начни с малого — сделай одну задачу!"
-        "☑ А ты на правильном пути! Продолжай!"
-        "☑ Фокус на задачах! Ты можешь больше!"
-        "☑ Каждый шаг приближает к цели! Давай!"
-        )
-        MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
-        RANDOM_ID=$RANDOM
-        curl -s -X POST "https://api.vk.com/method/messages.send" \
-        -d "user_id=$VK_USER_ID" \
-        --data-urlencode "message=$MSG" \
-        -d "access_token=$VK_TOKEN" \
-        -d "v=5.199" \
-        -d "random_id=$RANDOM_ID"
+      - name: Send task reminders
+        env:
+          VK_TOKEN: ${{ secrets.VK_TOKEN }}
+          VK_USER_ID: ${{ secrets.VK_USER_ID }}
+        run: |
+          if [ ! -f tasks.json ]; then
+            curl -s -X POST "https://api.vk.com/method/messages.send" \
+              -d "user_id=$VK_USER_ID" \
+              --data-urlencode "message=📋 Проверь задачи на сайте!" \
+              -d "access_token=$VK_TOKEN" \
+              -d "v=5.199"
+            exit 0
+          fi
+
+          python3 << 'EOF'
+          import json, os, random
+          from datetime import datetime, timedelta
+          import urllib.request, urllib.parse
+
+          VK_TOKEN = os.environ['VK_TOKEN']
+          VK_USER_ID = os.environ['VK_USER_ID']
+
+          try:
+              with open('tasks.json', 'r') as f:
+                  tasks = json.load(f)
+          except:
+              tasks = []
+
+          today = datetime.now().strftime('%Y-%m-%d')
+          tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+          
+          active = [t for t in tasks if t.get('status') == 'active']
+          messages = []
+          
+          for task in active:
+              title = task.get('text', 'Задача')
+              deadline = task.get('deadline', '')
+              if deadline and deadline < today:
+                  messages.append(f"⚠️ ПРОСРОЧЕНО: {title}")
+              elif deadline == today:
+                  messages.append(f"📋 СЕГОДНЯ: {title}")
+              elif deadline == tomorrow:
+                  messages.append(f"📅 ЗАВТРА: {title}")
+          
+          if not messages and active:
+              messages.append(f"📊 У тебя {len(active)} активных задач!")
+          elif not messages:
+              messages.append("🎉 Нет активных задач. Отдыхай!")
+          
+          motivation = ["💪 Ты справляешься!", "🔥 Продолжай!", "⭐ Ты на правильном пути!"]
+          messages.append(random.choice(motivation))
+          
+          final_message = "\n".join(messages)
+          data = urllib.parse.urlencode({
+              'user_id': VK_USER_ID, 'message': final_message,
+              'access_token': VK_TOKEN, 'v': '5.199'
+          }).encode()
+          req = urllib.request.Request('https://api.vk.com/method/messages.send', data=data)
+          urllib.request.urlopen(req)
+          print(f"Отправлено: {final_message}")
+          EOF
