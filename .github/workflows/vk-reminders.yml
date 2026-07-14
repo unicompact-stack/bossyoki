@@ -1,1 +1,32 @@
+name: VK Reminders
 
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Send VK reminders
+      env:
+        VK_TOKEN: ${{ secrets.VK_TOKEN }}
+        VK_USER_ID: ${{ secrets.VK_USER_ID }}
+      run: |
+        MESSAGES=(
+        "☑ BossYoki напоминает: ты справишься! Проверь задачи!"
+        "☑ Не откладывай! Начни с малого — сделай одну задачу!"
+        "☑ А ты на правильном пути! Продолжай!"
+        "☑ Фокус на задачах! Ты можешь больше!"
+        "☑ Каждый шаг приближает к цели! Давай!"
+        )
+        MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+        curl -s -X POST "https://api.vk.com/method/messages.send" \
+        -d "user_id=$VK_USER_ID" \
+        --data-urlencode "message=$MSG" \
+        -d "access_token=$VK_TOKEN" \
+        -d "v=5.199"
