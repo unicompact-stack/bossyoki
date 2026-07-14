@@ -14,6 +14,8 @@ def load_config() -> dict:
                 config[key.strip()] = value.strip()
     # Также из переменных окружения
     config["vk_token"] = os.getenv("VK_TOKEN", config.get("VK_TOKEN", ""))
+    config["vk_group_id"] = os.getenv("VK_GROUP_ID", config.get("VK_GROUP_ID", ""))
+    config["vk_user_id"] = os.getenv("VK_USER_ID", config.get("VK_USER_ID", ""))
     config["github_token"] = os.getenv("GITHUB_TOKEN", config.get("GITHUB_TOKEN", ""))
     # GitHub Models API
     config["ai_api_url"] = "https://models.inference.ai.azure.com/chat/completions"

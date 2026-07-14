@@ -40,3 +40,14 @@ def complete_task(task_id: int) -> bool:
             save_tasks(tasks)
             return True
     return False
+
+
+def delete_task(task_id: int) -> bool:
+    """Удалить задачу."""
+    tasks = load_tasks()
+    for i, task in enumerate(tasks):
+        if task["id"] == task_id:
+            tasks.pop(i)
+            save_tasks(tasks)
+            return True
+    return False
