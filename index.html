@@ -229,6 +229,7 @@ body {
     </div>
     <div class="header-actions">
       <div class="header-btn mic" id="micBtn" onclick="toggleVoice()" title="Голосовой ввод">🎤</div>
+      <div class="header-btn" onclick="syncToGitHub()" title="Синхронизировать с VK">🔄</div>
       <div class="header-btn" onclick="openSettings()" title="Настройки">⚙️</div>
     </div>
   </div>
@@ -807,6 +808,53 @@ function saveSettings() {
 
 // ==================== UTILS ====================
 function save() { localStorage.setItem('zadachnik_tasks', JSON.stringify(tasks)); }
+
+// Синхронизация с GitHub (чтобы VK-бот знал задачи)
+async function syncToGitHub() {
+  const token = settings.ai_key;
+  if (!token) { toast('⚠️ Введи GitHub Token в настройках'); return; }
+  
+  const data = JSON.stringify(tasks, null, 2);
+  const repo = 'unicompact-stack/bossyoki';
+  const path = 'tasks.json';
+  
+  try {
+    let sha = '';
+    try {
+      const getResp = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+        headers: { 'Authorization': 'token ' + token }
+      });
+      if (getResp.ok) {
+        const fileInfo = await getResp.json();
+        sha = fileInfo.sha;
+      }
+    } catch(e) {}
+    
+    const body = {
+      message: 'Обновление задач из веб-приложения',
+      content: btoa(unescape(encodeURIComponent(data))),
+      sha: sha
+    };
+    
+    const resp = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    
+    if (resp.ok) {
+      toast('✅ Задачи синхронизированы с VK');
+    } else {
+      toast('⚠️ Ошибка синхронизации');
+    }
+  } catch(e) {
+    toast('⚠️ Ошибка сети');
+  }
+}
+
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
