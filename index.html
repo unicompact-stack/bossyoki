@@ -160,6 +160,19 @@ body {
   display: flex; align-items: center; justify-content: center;
   transition: transform 0.2s; z-index: 11;
 }
+.fab:hover { transform: scale(1.1); }
+.fab:active { transform: scale(0.95); }
+
+/* ===== CHAT FAB ===== */
+.fab-chat {
+  position: fixed; bottom: 148px; right: 16px; width: 56px; height: 56px;
+  border-radius: 50%; background: var(--green); color: #fff; border: none;
+  font-size: 26px; cursor: pointer; box-shadow: 0 4px 16px rgba(16,185,129,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s; z-index: 11;
+}
+.fab-chat:hover { transform: scale(1.1); }
+.fab-chat:active { transform: scale(0.95); }
 /* ===== HISTORY ===== */
 .history-section {
   border-top: 1px solid var(--border);
@@ -373,7 +386,6 @@ body {
       </div>
       <div class="header-btn" id="micBtn" onclick="toggleVoice()" title="Голосовой ввод" style="display:none">🎤</div>
       <div class="header-btn" onclick="syncToGitHub()" title="Синхронизировать с VK">🔄</div>
-      <div class="header-btn" onclick="openChat()" title="Чат с Боссом">💬</div>
       <div class="header-btn" onclick="openSettings()" title="Настройки">⚙️</div>
     </div>
   </div>
@@ -426,6 +438,9 @@ body {
 
 <!-- ===== FAB ===== -->
 <button class="fab" onclick="openModal()">+</button>
+
+<!-- ===== CHAT FAB ===== -->
+<button class="fab-chat" onclick="openChat()" title="Чат с Боссом">💬</button>
 
 <!-- ===== HISTORY ===== -->
 <div class="history-section" id="historySection" style="display:none;padding:16px">
@@ -1404,11 +1419,13 @@ try {
 let chatLoading = false;
 
 function openChat() {
+  console.log('[Chat] Открыт');
   document.getElementById('chatOverlay').classList.add('open');
   renderChat();
   setTimeout(() => document.getElementById('chatInput').focus(), 200);
 }
 function closeChat() {
+  console.log('[Chat] Закрыт');
   document.getElementById('chatOverlay').classList.remove('open');
 }
 
@@ -1452,10 +1469,23 @@ async function sendChatMessage() {
   if (!text) return;
   input.value = '';
   addChatMessage('user', text);
+  console.log('[Chat] Отправлено:', text);
 
   const apiKey = settings.ai_key;
   if (!apiKey) {
-    addChatMessage('bot', '⚠️ Введи GitHub Token в настройках, чтобы я мог отвечать.');
+    console.warn('[Chat] Нет GitHub Token');
+    addChatMessage('bot', '⚠️ Введи GitHub Token в настройках (⚙️), чтобы я мог отвечать.');
+    hideChatLoading();
+    chatLoading = false;
+    return;
+  }
+
+  // Проверка сети
+  if (!navigator.onLine) {
+    console.warn('[Chat] Нет сети');
+    addChatMessage('bot', '⚠️ Нет интернета. Проверь подключение к сети.');
+    hideChatLoading();
+    chatLoading = false;
     return;
   }
 
@@ -1468,11 +1498,13 @@ async function sendChatMessage() {
       { role: 'system', content: systemMsg },
       ...chatHistory.slice(-10).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
     ];
+    console.log('[Chat] Запрос к AI...');
     const r = await fetch(AI_API_URL, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: AI_MODEL, messages, max_tokens: 500, temperature: 0.7 })
     });
+    console.log('[Chat] Статус:', r.status);
 
     if (r.status === 429) {
       hideChatLoading();
@@ -1481,7 +1513,22 @@ async function sendChatMessage() {
       return;
     }
 
+    if (r.status === 401) {
+      hideChatLoading();
+      addChatMessage('bot', '⚠️ Неверный токен. Проверь GitHub Token в настройках (⚙️).');
+      chatLoading = false;
+      return;
+    }
+
+    if (!r.ok) {
+      hideChatLoading();
+      addChatMessage('bot', `⚠️ Ошибка сервера (${r.status}). Попробуй позже.`);
+      chatLoading = false;
+      return;
+    }
+
     const data = await r.json();
+    console.log('[Chat] Ответ AI:', data);
     const reply = data.choices?.[0]?.message?.content || 'Ошибка AI';
     parseAIActions(reply);
     const cleanReply = reply.replace(/\[(?:ADD_TASK|DEL_TASK|DONE_TASK):.*?\]/g, '').trim();
@@ -1491,6 +1538,7 @@ async function sendChatMessage() {
       speak(cleanReply);
     }
   } catch(e) {
+    console.error('[Chat] Ошибка:', e);
     hideChatLoading();
     addChatMessage('bot', '⚠️ Ошибка связи. Попробуй ещё раз.');
   }
