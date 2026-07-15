@@ -1135,7 +1135,16 @@ function saveSettings() {
 }
 
 // ==================== UTILS ====================
-function save() { localStorage.setItem('zadachnik_tasks', JSON.stringify(tasks)); }
+function save() {
+  localStorage.setItem('zadachnik_tasks', JSON.stringify(tasks));
+  // Автосинхронизация с GitHub через 2 секунды
+  if (settings.ai_key && !window._syncTimer) {
+    window._syncTimer = setTimeout(() => {
+      syncToGitHub();
+      window._syncTimer = null;
+    }, 2000);
+  }
+}
 
 // Синхронизация с GitHub (чтобы VK-бот знал задачи)
 async function syncToGitHub() {
@@ -1236,6 +1245,7 @@ updateGreeting();
 renderAll();
 initSpeech();
 requestNotificationPermission();
+loadFromGitHub();
 </script>
 </body>
 </html>
