@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-07-15T12:33:33.125Z",
+  "updatedAt": "2026-07-15T12:33:52.086Z",
   "tasks": [
     {
       "id": "mrl745j7bx4b",
@@ -47,7 +47,7 @@
       "category": "",
       "subtasks": [],
       "subtaskDone": [],
-      "done": false,
+      "done": true,
       "created": "2026-07-15T06:16:20.707Z"
     },
     {
