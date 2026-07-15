@@ -303,6 +303,12 @@ body {
         <input class="form-input" type="date" id="fDate">
       </div>
       <div class="form-group">
+        <label class="form-label">Время</label>
+        <input class="form-input" type="time" id="fTime">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
         <label class="form-label">Приоритет</label>
         <select class="form-select" id="fPriority">
           <option value="high">🔴 Срочно</option>
@@ -310,9 +316,8 @@ body {
           <option value="low">🟢 Потом</option>
         </select>
       </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Категория</label>
+      <div class="form-group">
+        <label class="form-label">Категория</label>
       <select class="form-select" id="fCategory">
         <option value="">Без категории</option>
         <option value="work">💼 Работа</option>
@@ -437,6 +442,7 @@ function taskCard(t) {
   const priLabel = PRI_LABELS[t.priority] || '';
   const catLabel = CAT_LABELS[t.category] || '';
   const dateStr = t.date ? new Date(t.date+'T00:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'short'}) : '';
+  const timeStr = t.time ? `⏰ ${t.time}` : '';
 
   let subtasksHtml = '';
   if (t.subtasks && t.subtasks.length) {
@@ -459,6 +465,7 @@ function taskCard(t) {
           ${priLabel ? `<span class="task-tag tag-${t.priority}">${priLabel}</span>` : ''}
           ${catLabel ? `<span class="task-tag tag-cat">${catLabel}</span>` : ''}
           ${dateStr ? `<span class="task-date">${dateStr}</span>` : ''}
+          ${timeStr ? `<span class="task-date">${timeStr}</span>` : ''}
         </div>
         ${subtasksHtml}
       </div>
@@ -542,6 +549,7 @@ function openModal(id) {
   document.getElementById('fTitle').value = t ? t.title : '';
   document.getElementById('fNote').value = t ? (t.note||'') : '';
   document.getElementById('fDate').value = t ? t.date : today();
+  document.getElementById('fTime').value = t ? (t.time||'') : '';
   document.getElementById('fPriority').value = t ? t.priority : 'medium';
   document.getElementById('fCategory').value = t ? (t.category||'') : '';
   document.getElementById('fSubtasks').value = t && t.subtasks ? t.subtasks.join('\n') : '';
@@ -561,6 +569,7 @@ function saveTask() {
     title,
     note: document.getElementById('fNote').value.trim(),
     date: document.getElementById('fDate').value,
+    time: document.getElementById('fTime').value,
     priority: document.getElementById('fPriority').value,
     category: document.getElementById('fCategory').value,
     subtasks
@@ -573,7 +582,8 @@ function saveTask() {
   }
   closeModal();
   renderAll();
-  toast(isEditing ? 'Сохранено' : '✅ Задача добавлена!');
+  const timeStr = data.time ? ` в ${data.time}` : '';
+  toast(isEditing ? 'Сохранено' : `✅ "${data.title}" → ${data.date}${timeStr}`);
 }
 
 // ==================== STATS ====================
@@ -684,11 +694,22 @@ function processVoiceCommand(text) {
     }
     if (col === 'backlog') date = '';
 
-    tasks.push({ id: genId(), title, note:'', date, priority: pri, category:'', subtasks:[], subtaskDone:[], done:false, created: new Date().toISOString() });
+    // Определяем время (например, "в 15:00", "в 3 часа")
+    let time = '';
+    const timeMatch = text.match(/в (\d{1,2}[:\.]\d{2})/);
+    const hourMatch = text.match(/в (\d{1,2}) (час|часа|часов)/);
+    if (timeMatch) {
+      time = timeMatch[1].replace('.', ':');
+    } else if (hourMatch) {
+      time = hourMatch[1].padStart(2, '0') + ':00';
+    }
+
+    tasks.push({ id: genId(), title, note:'', date, time, priority: pri, category:'', subtasks:[], subtaskDone:[], done:false, created: new Date().toISOString() });
     renderAll();
     const colName = col === 'today' ? 'Сегодня' : col === 'week' ? 'Неделя' : 'Бэклог';
-    toast(`✅ "${title}" → ${colName}`);
-    speak(`Задача добавлена в "${colName}"`);
+    const timeStr = time ? ` в ${time}` : '';
+    toast(`✅ "${title}" → ${colName}${timeStr}`);
+    speak(`Задача добавлена в "${colName}"${timeStr}`);
     return;
   }
 
