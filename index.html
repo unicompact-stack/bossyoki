@@ -54,6 +54,14 @@ body {
 .stats-left { display: flex; align-items: center; gap: 8px; }
 .stats-count { font-size: 14px; font-weight: 700; }
 .stats-count .num { color: var(--accent); }
+.stats-right { flex: 1; margin: 0 12px; }
+.progress-bar {
+  height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; background: var(--accent); border-radius: 3px;
+  transition: width 0.3s ease;
+}
 .motivation {
   font-size: 13px; font-weight: 600; color: var(--accent);
   animation: fadeInUp 0.4s ease; display: none;
@@ -223,6 +231,12 @@ body {
 }
 .ai-btn:hover { border-color: var(--accent); background: var(--accent-light); }
 
+/* ===== CONFETTI ===== */
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .board { grid-template-columns: 1fr; gap: 16px; }
@@ -254,7 +268,12 @@ body {
 <div style="padding: 12px 16px 0">
   <div class="stats-bar">
     <div class="stats-left">
-      <div class="stats-count">✅ <span class="num" id="statDone">0</span> задач сегодня</div>
+      <div class="stats-count">✅ <span class="num" id="statDone">0</span> из <span class="num" id="statTotal">0</span></div>
+    </div>
+    <div class="stats-right">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
     </div>
     <div class="motivation" id="motivation"></div>
   </div>
@@ -612,15 +631,43 @@ function saveTask() {
 
 // ==================== STATS ====================
 function updateStats() {
+  const todayTasks = tasks.filter(t => !t.done && t.date === today());
   const doneToday = tasks.filter(t => t.done && t.date === today()).length;
+  const total = todayTasks.length + doneToday;
+  
   document.getElementById('statDone').textContent = doneToday;
-
+  document.getElementById('statTotal').textContent = total;
+  
+  const progress = total > 0 ? (doneToday / total * 100) : 0;
+  document.getElementById('progressFill').style.width = progress + '%';
+  
   const motivation = document.getElementById('motivation');
   if (doneToday >= 5) {
     motivation.textContent = MOTIVATION[Math.floor(Math.random() * MOTIVATION.length)];
     motivation.classList.add('show');
+    if (doneToday === 5) {
+      playSound('done');
+      showNotification('BossYoki', 'Ты сегодня супергерой! 5 задач выполнено!');
+      speak('Пять задач выполнено! Ты супергерой!');
+      createConfetti();
+    }
   } else {
     motivation.classList.remove('show');
+  }
+}
+
+function createConfetti() {
+  const colors = ['#ff6b35', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+  for (let i = 0; i < 50; i++) {
+    const confetti = document.createElement('div');
+    confetti.style.cssText = `
+      position: fixed; top: -10px; left: ${Math.random() * 100}%;
+      width: 10px; height: 10px; background: ${colors[Math.floor(Math.random() * colors.length)]};
+      border-radius: 50%; pointer-events: none; z-index: 1000;
+      animation: confettiFall ${2 + Math.random() * 2}s linear forwards;
+    `;
+    document.body.appendChild(confetti);
+    setTimeout(() => confetti.remove(), 4000);
   }
 }
 
