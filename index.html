@@ -1394,7 +1394,14 @@ ${taskList}
 }
 
 // ==================== CHAT ====================
-let chatHistory = JSON.parse(localStorage.getItem('zadachnik_chat') || '[]');
+let chatHistory = [];
+try {
+  const saved = localStorage.getItem('zadachnik_chat');
+  if (saved) chatHistory = JSON.parse(saved);
+  if (!Array.isArray(chatHistory)) chatHistory = [];
+} catch(e) { chatHistory = []; }
+
+let chatLoading = false;
 
 function openChat() {
   document.getElementById('chatOverlay').classList.add('open');
@@ -1413,9 +1420,9 @@ function renderChat() {
   }
   el.innerHTML = chatHistory.map(m => {
     if (m.role === 'user') {
-      return `<div class="chat-msg user">${esc(m.text)}</div>`;
+      return `<div class="chat-msg user">${esc(m.text.slice(0, 500))}</div>`;
     } else {
-      return `<div class="chat-msg bot"><div class="msg-name">Босс</div>${esc(m.text)}</div>`;
+      return `<div class="chat-msg bot"><div class="msg-name">Босс</div>${esc(m.text.slice(0, 1000))}</div>`;
     }
   }).join('');
   el.scrollTop = el.scrollHeight;
@@ -1423,13 +1430,23 @@ function renderChat() {
 
 function addChatMessage(role, text) {
   chatHistory.push({ role, text, time: new Date().toISOString() });
-  // Храним последние 100 сообщений
   if (chatHistory.length > 100) chatHistory = chatHistory.slice(-100);
   localStorage.setItem('zadachnik_chat', JSON.stringify(chatHistory));
   renderChat();
 }
 
+function showChatLoading() {
+  const el = document.getElementById('chatMessages');
+  el.innerHTML += '<div class="chat-msg bot" id="chatLoading"><div class="msg-name">Босс</div><span style="color:var(--text3)">Думаю...</span></div>';
+  el.scrollTop = el.scrollHeight;
+}
+function hideChatLoading() {
+  const el = document.getElementById('chatLoading');
+  if (el) el.remove();
+}
+
 async function sendChatMessage() {
+  if (chatLoading) return;
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if (!text) return;
@@ -1442,6 +1459,9 @@ async function sendChatMessage() {
     return;
   }
 
+  chatLoading = true;
+  showChatLoading();
+
   try {
     const systemMsg = SYSTEM_PROMPT + '\n\nТекущие задачи:\n' + getTasksContext() + '\n\nТы общаешься с пользователем в чате. Будь живым, общайся на ты, помогай с задачами, мотивируй. Не только команды — просто общайся.';
     const messages = [
@@ -1453,17 +1473,28 @@ async function sendChatMessage() {
       headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: AI_MODEL, messages, max_tokens: 500, temperature: 0.7 })
     });
+
+    if (r.status === 429) {
+      hideChatLoading();
+      addChatMessage('bot', '⚠️ Слишком много запросов. Подожди минуту и попробуй снова.');
+      chatLoading = false;
+      return;
+    }
+
     const data = await r.json();
     const reply = data.choices?.[0]?.message?.content || 'Ошибка AI';
     parseAIActions(reply);
     const cleanReply = reply.replace(/\[(?:ADD_TASK|DEL_TASK|DONE_TASK):.*?\]/g, '').trim();
+    hideChatLoading();
     if (cleanReply) {
       addChatMessage('bot', cleanReply);
       speak(cleanReply);
     }
   } catch(e) {
+    hideChatLoading();
     addChatMessage('bot', '⚠️ Ошибка связи. Попробуй ещё раз.');
   }
+  chatLoading = false;
 }
 function toggleAIPanel() {
   const panel = document.getElementById('aiPanel');
