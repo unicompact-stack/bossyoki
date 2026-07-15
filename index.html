@@ -208,6 +208,21 @@ body {
 /* ===== SETTINGS MODAL ===== */
 .settings-overlay { z-index: 250; }
 
+/* ===== AI PANEL ===== */
+.ai-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; gap: 8px; padding: 12px 16px;
+  background: var(--bg); border-top: 1px solid var(--border);
+  z-index: 50; justify-content: center;
+}
+.ai-btn {
+  padding: 10px 16px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; font-family: var(--font);
+}
+.ai-btn:hover { border-color: var(--accent); background: var(--accent-light); }
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .board { grid-template-columns: 1fr; gap: 16px; }
@@ -282,6 +297,13 @@ body {
 <div class="voice-bar">
   <input class="voice-input" id="voiceInput" placeholder="Нажми 🎤 или напиши..." onkeydown="if(event.key==='Enter')sendText()">
   <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+</div>
+
+<!-- ===== AI PANEL ===== -->
+<div class="ai-panel">
+  <button class="ai-btn" onclick="analyzeDay()">📊 Анализ дня</button>
+  <button class="ai-btn" onclick="planDay()">🤖 План на день</button>
+  <button class="ai-btn" onclick="syncToGitHub()">🔄 Синхронизация</button>
 </div>
 
 <!-- ===== MODAL: TASK ===== -->
@@ -809,6 +831,111 @@ async function askAI(text) {
     }
   } catch(e) {
     toast('⚠️ Ошибка связи с AI');
+  }
+}
+
+// ==================== AI ANALYSIS ====================
+async function analyzeDay() {
+  const apiKey = settings.ai_key;
+  if (!apiKey) { toast('⚠️ Введи GitHub Token в настройках'); return; }
+  
+  const active = tasks.filter(t => !t.done);
+  const todayTasks = tasks.filter(t => !t.done && getColumn(t) === 'today');
+  
+  if (!active.length) {
+    toast('📊 Нет активных задач');
+    speak('Нет активных задач. Молодец!');
+    return;
+  }
+  
+  const taskList = active.map(t => {
+    const timeStr = t.time ? ` в ${t.time}` : '';
+    return `- ${t.title} (${t.date || 'без даты'}${timeStr}, ${t.priority || 'medium'})`;
+  }).join('\n');
+  
+  const prompt = `Проанализируй задачи руководителя и дай рекомендации:
+
+Задачи:
+${taskList}
+
+Сегодня: ${today()}
+
+Дай:
+1. Сколько задач на сегодня, на неделю
+2. Какие задачи срочные и требуют немедленного внимания
+3. Какие задачи можно перенести
+4. Рекомендации по порядку выполнения
+5. Общую оценку нагрузки (много/нормально/мало)
+
+Говори кратко, по делу, на русском.`;
+  
+  try {
+    const systemMsg = 'Ты опытный тайм-менеджер. Анализируй задачи и давай конкретные рекомендации.';
+    const messages = [
+      { role: 'system', content: systemMsg },
+      { role: 'user', content: prompt }
+    ];
+    const r = await fetch(AI_API_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: AI_MODEL, messages, max_tokens: 500, temperature: 0.7 })
+    });
+    const data = await r.json();
+    const reply = data.choices?.[0]?.message?.content || 'Ошибка AI';
+    toast(reply.slice(0, 60));
+    speak(reply);
+  } catch(e) {
+    toast('⚠️ Ошибка анализа');
+  }
+}
+
+async function planDay() {
+  const apiKey = settings.ai_key;
+  if (!apiKey) { toast('⚠️ Введи GitHub Token в настройках'); return; }
+  
+  const todayTasks = tasks.filter(t => !t.done && getColumn(t) === 'today');
+  
+  if (!todayTasks.length) {
+    toast('📋 Нет задач на сегодня');
+    speak('На сегодня задач нет. Можешь добавить!');
+    return;
+  }
+  
+  const taskList = todayTasks.map(t => {
+    const timeStr = t.time ? ` в ${t.time}` : '';
+    return `- ${t.title}${timeStr} (${t.priority || 'medium'})`;
+  }).join('\n');
+  
+  const prompt = `Составь план на сегодня:
+
+Задачи на сегодня:
+${taskList}
+
+Составь:
+1. Порядок выполнения (от самого важного)
+2. Примерное время на каждую задачу
+3. Какие задачи объединить
+4. Итоговая оценка: успеешь или нет
+
+Говори кратко и мотивирующе.`;
+  
+  try {
+    const systemMsg = 'Ты тайм-менеджер. Составляй планы на день. Мотивируй, но будь реалистичен.';
+    const messages = [
+      { role: 'system', content: systemMsg },
+      { role: 'user', content: prompt }
+    ];
+    const r = await fetch(AI_API_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: AI_MODEL, messages, max_tokens: 500, temperature: 0.7 })
+    });
+    const data = await r.json();
+    const reply = data.choices?.[0]?.message?.content || 'Ошибка AI';
+    toast(reply.slice(0, 60));
+    speak(reply);
+  } catch(e) {
+    toast('⚠️ Ошибка планирования');
   }
 }
 
