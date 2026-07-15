@@ -467,9 +467,14 @@ body {
     <div class="modal-handle"></div>
     <h3>⚙️ Настройки</h3>
     <div class="form-group">
-      <label class="form-label">GitHub Token (для AI)</label>
+      <label class="form-label">GitHub Token (для AI и сохранения)</label>
       <input class="form-input" id="settingsToken" type="password" placeholder="ghp_...">
-      <div style="font-size:10px;color:var(--text3);margin-top:3px">Токен для AI-чата. Хранится только в браузере.</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">Токен для AI-чата и сохранения задач. Хранится только в браузере.</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">VK Token (для напоминаний)</label>
+      <input class="form-input" id="settingsVkToken" type="password" placeholder="vk1.a....">
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">Токен сообщества VK для отправки напоминаний. Опционально.</div>
     </div>
     <div class="form-group">
       <label class="form-label">Голосовой вывод</label>
@@ -506,7 +511,7 @@ body {
 <script>
 // ==================== STATE ====================
 let tasks = JSON.parse(localStorage.getItem('zadachnik_tasks') || '[]');
-let settings = JSON.parse(localStorage.getItem('zadachnik_settings') || '{"ai_key":"","voice":"on","voiceGender":"female","voiceSpeed":"normal"}');
+let settings = JSON.parse(localStorage.getItem('zadachnik_settings') || '{"ai_key":"","vk_token":"","voice":"on","voiceGender":"female","voiceSpeed":"normal"}');
 let editingId = null;
 let dragId = null;
 let recognition = null;
@@ -567,6 +572,9 @@ async function loadFromGitHub() {
       updateSyncStatus('online', ' синхронизировано');
     } else if (resp.status === 404) {
       updateSyncStatus('online', ' файл не найден');
+    } else if (resp.status === 403) {
+      updateSyncStatus('error', ' rate limit');
+      toast('⚠️ GitHub API: слишком много запросов. Попробуй позже.');
     }
   } catch(e) {
     console.log('GitHub load error:', e);
@@ -1309,6 +1317,7 @@ function toggleAIPanel() {
 // ==================== SETTINGS ====================
 function openSettings() {
   document.getElementById('settingsToken').value = settings.ai_key || '';
+  document.getElementById('settingsVkToken').value = settings.vk_token || '';
   document.getElementById('settingsVoice').value = settings.voice || 'on';
   document.getElementById('settingsGender').value = settings.voiceGender || 'female';
   document.getElementById('settingsSpeed').value = settings.voiceSpeed || 'normal';
@@ -1317,6 +1326,7 @@ function openSettings() {
 function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
 function saveSettings() {
   settings.ai_key = document.getElementById('settingsToken').value.trim();
+  settings.vk_token = document.getElementById('settingsVkToken').value.trim();
   settings.voice = document.getElementById('settingsVoice').value;
   settings.voiceGender = document.getElementById('settingsGender').value;
   settings.voiceSpeed = document.getElementById('settingsSpeed').value;
@@ -1376,9 +1386,10 @@ function checkReminders() {
   });
 }
 
-// Отправка напоминания в VK
+// Отправка напоминания в VK (токен берётся из settings)
 function sendVKReminder(taskTitle) {
-  const vkToken = 'vk1.a.7O7vc4ePWw_iA6BM-Fs4qBSPIjQGTSc32lbfobMrmyzZQIK2LtV0lOYQlNRXLLRAijN_hbKnvGIBFlCeRKYxIscvDUn_JiSfVYZH3MC3D1fuWotDXSvKT0da3aMQQQsJu-_3ZKJnNUK9Epk4V4KP2Evq8sESlzvdd3kHf3rDsz2Mko-So1IaXGudoBYrGoH6QYoxUr-g8n-mgwuMBN92zQ';
+  const vkToken = settings.vk_token;
+  if (!vkToken) return; // Токен не задан — пропускаем
   const userId = 114439622;
   const randomId = Math.floor(Math.random() * 1000000000);
   const message = encodeURIComponent(`BossYoki напоминание: ${taskTitle}`);
