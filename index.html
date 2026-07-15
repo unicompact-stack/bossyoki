@@ -539,18 +539,11 @@ function getColumn(t) {
 
 // ==================== GITHUB SYNC ====================
 async function loadFromGitHub() {
-  const token = settings.ai_key;
-  if (!token) {
-    updateSyncStatus('error', ' нет токена');
-    return;
-  }
-
   updateSyncStatus('syncing', ' загрузка...');
 
   try {
-    const resp = await fetch('https://api.github.com/repos/unicompact-stack/bossyoki/contents/tasks.json', {
-      headers: { 'Authorization': 'token ' + token }
-    });
+    // Чтение БЕЗ токена (публичный репозиторий)
+    const resp = await fetch('https://api.github.com/repos/unicompact-stack/bossyoki/contents/tasks.json');
 
     if (resp.ok) {
       const file = await resp.json();
@@ -573,7 +566,6 @@ async function loadFromGitHub() {
 
       updateSyncStatus('online', ' синхронизировано');
     } else if (resp.status === 404) {
-      // Файла нет — создаём
       updateSyncStatus('online', ' файл не найден');
     }
   } catch(e) {
@@ -1407,10 +1399,14 @@ window.addEventListener('offline', () => {
   toast('⚠️ Нет интернета');
 });
 
-// Синхронизация с GitHub (чтобы VK-бот знал задачи)
+// Синхронизация с GitHub (запись требует токен)
 async function syncToGitHub() {
   const token = settings.ai_key;
-  if (!token) { toast('⚠️ Введи GitHub Token в настройках'); return; }
+  if (!token) {
+    toast('⚠️ Для сохранения нужен GitHub Token (только в настройках)');
+    updateSyncStatus('online', ' чтение OK');
+    return;
+  }
 
   updateSyncStatus('syncing', ' синхронизация...');
 
