@@ -540,8 +540,10 @@ function toggleTask(id) {
     t.done = !t.done;
     renderAll();
     if (t.done) {
+      playSound('done');
       toast('✅ Молодец!');
       speak('Отлично! Задача выполнена');
+      showNotification('BossYoki', `Задача "${t.title}" выполнена!`);
     }
   }
 }
@@ -1003,6 +1005,48 @@ async function syncToGitHub() {
   }
 }
 
+// ==================== SOUND & NOTIFICATIONS ====================
+let audioCtx = null;
+
+function playSound(type) {
+  if (settings.voice === 'off') return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  if (type === 'done') {
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  } else if (type === 'reminder') {
+    osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(700, audioCtx.currentTime + 0.15);
+    osc.frequency.setValueAtTime(500, audioCtx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+  }
+}
+
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function showNotification(title, body) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body, icon: '📋' });
+  }
+}
+
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
@@ -1013,6 +1057,7 @@ function toast(msg) {
 updateGreeting();
 renderAll();
 initSpeech();
+requestNotificationPermission();
 </script>
 </body>
 </html>
