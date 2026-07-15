@@ -2,9 +2,7 @@ name: VK Reminders
 
 on:
   schedule:
-    - cron: '0 7 * * *'
-    - cron: '0 9 * * *'
-    - cron: '0 18 * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -44,21 +42,36 @@ jobs:
           except:
               tasks = []
 
-          today = datetime.now().strftime('%Y-%m-%d')
-          tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+          now = datetime.now()
+          today = now.strftime('%Y-%m-%d')
+          tomorrow = (now + timedelta(days=1)).strftime('%Y-%m-%d')
+          current_time = now.strftime('%H:%M')
           
-          active = [t for t in tasks if t.get('status') == 'active']
+          active = [t for t in tasks if t.get('status') == 'active' or not t.get('status')]
           messages = []
           
           for task in active:
-              title = task.get('text', 'Задача')
-              deadline = task.get('deadline', '')
+              title = task.get('text', task.get('title', 'Задача'))
+              deadline = task.get('deadline', task.get('date', ''))
+              task_time = task.get('time', '')
+              
               if deadline and deadline < today:
                   messages.append(f"⚠️ ПРОСРОЧЕНО: {title}")
-              elif deadline == today:
+              elif deadline == today and task_time:
+                  try:
+                      task_h, task_m = map(int, task_time.split(':'))
+                      now_h, now_m = map(int, current_time.split(':'))
+                      task_minutes = task_h * 60 + task_m
+                      now_minutes = now_h * 60 + now_m
+                      if task_minutes - 5 <= now_minutes <= task_minutes + 5:
+                          messages.append(f"⏰ СЕЙЧАС: {title} в {task_time}")
+                  except:
+                      pass
+              elif deadline == today and not task_time:
                   messages.append(f"📋 СЕГОДНЯ: {title}")
               elif deadline == tomorrow:
-                  messages.append(f"📅 ЗАВТРА: {title}")
+                  time_str = f" в {task_time}" if task_time else ""
+                  messages.append(f"📅 ЗАВТРА: {title}{time_str}")
           
           if not messages and active:
               messages.append(f"📊 У тебя {len(active)} активных задач!")
