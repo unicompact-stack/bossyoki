@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-07-15T11:36:11.820Z",
+  "updatedAt": "2026-07-15T11:37:09.087Z",
   "tasks": [
     {
       "id": "mrl745j7bx4b",
@@ -88,6 +88,19 @@
       "subtaskDone": [],
       "done": false,
       "created": "2026-07-15T11:30:33.079Z"
+    },
+    {
+      "id": "mrm09d7664ef",
+      "title": "Сходить к другу",
+      "note": "",
+      "date": "2026-07-15",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "subtasks": [],
+      "subtaskDone": [],
+      "done": false,
+      "created": "2026-07-15T11:37:06.066Z"
     }
   ]
 }
