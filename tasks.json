@@ -1,40 +1,6 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-15T20:39:40.814160",
-  "tasks": [
-    {
-      "id": "1",
-      "title": "название задачи",
-      "note": "",
-      "date": "дата",
-      "time": "",
-      "priority": "приоритет",
-      "category": "",
-      "done": false,
-      "created": "2026-07-15 20:25:28"
-    },
-    {
-      "id": "2",
-      "title": "Завершить проект",
-      "note": "",
-      "date": "2026-2026",
-      "time": "",
-      "priority": "высокий",
-      "category": "",
-      "done": false,
-      "created": "2026-07-15 20:25:53"
-    },
-    {
-      "id": "3",
-      "title": "Позвонить другу",
-      "note": "",
-      "date": "2026-2026",
-      "time": "",
-      "priority": "высокий",
-      "category": "",
-      "done": false,
-      "created": "2026-07-15 20:27:20"
-    }
-  ]
+  "updatedAt": "2026-07-15T20:41:02.332886",
+  "tasks": []
 }
