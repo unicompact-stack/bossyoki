@@ -406,6 +406,21 @@ body {
         <option value="off">Выключен</option>
       </select>
     </div>
+    <div class="form-group">
+      <label class="form-label">Голос</label>
+      <select class="form-select" id="settingsGender">
+        <option value="female">Женский</option>
+        <option value="male">Мужской</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Скорость речи</label>
+      <select class="form-select" id="settingsSpeed">
+        <option value="slow">Медленно</option>
+        <option value="normal">Нормально</option>
+        <option value="fast">Быстро</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeSettings()">Отмена</button>
       <button class="btn btn-primary" onclick="saveSettings()">Сохранить</button>
@@ -419,7 +434,7 @@ body {
 <script>
 // ==================== STATE ====================
 let tasks = JSON.parse(localStorage.getItem('zadachnik_tasks') || '[]');
-let settings = JSON.parse(localStorage.getItem('zadachnik_settings') || '{"ai_key":"","voice":"on"}');
+let settings = JSON.parse(localStorage.getItem('zadachnik_settings') || '{"ai_key":"","voice":"on","voiceGender":"female","voiceSpeed":"normal"}');
 let editingId = null;
 let dragId = null;
 let recognition = null;
@@ -835,7 +850,22 @@ function speak(text) {
   if (settings.voice === 'off' || !synth) return;
   const u = new SpeechSynthesisUtterance(text);
   u.lang = 'ru-RU';
-  u.rate = 1;
+  
+  // Скорость речи
+  const speedMap = { slow: 0.7, normal: 1, fast: 1.3 };
+  u.rate = speedMap[settings.voiceSpeed] || 1;
+  
+  // Пол голоса (выбираем подходящий голос)
+  const voices = synth.getVoices();
+  const ruVoices = voices.filter(v => v.lang.startsWith('ru'));
+  if (ruVoices.length) {
+    const genderVoice = ruVoices.find(v => 
+      settings.voiceGender === 'male' ? v.name.toLowerCase().includes('male') || v.name.includes('Михаил') : 
+      v.name.toLowerCase().includes('female') || v.name.includes('Анна') || v.name.includes('Milena')
+    );
+    if (genderVoice) u.voice = genderVoice;
+  }
+  
   u.pitch = 1;
   synth.speak(u);
 }
@@ -1027,12 +1057,16 @@ ${taskList}
 function openSettings() {
   document.getElementById('settingsToken').value = settings.ai_key || '';
   document.getElementById('settingsVoice').value = settings.voice || 'on';
+  document.getElementById('settingsGender').value = settings.voiceGender || 'female';
+  document.getElementById('settingsSpeed').value = settings.voiceSpeed || 'normal';
   document.getElementById('settingsOverlay').classList.add('open');
 }
 function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
 function saveSettings() {
   settings.ai_key = document.getElementById('settingsToken').value.trim();
   settings.voice = document.getElementById('settingsVoice').value;
+  settings.voiceGender = document.getElementById('settingsGender').value;
+  settings.voiceSpeed = document.getElementById('settingsSpeed').value;
   localStorage.setItem('zadachnik_settings', JSON.stringify(settings));
   closeSettings();
   toast('Настройки сохранены');
