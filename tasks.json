@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-16T07:27:48.259253",
+  "updatedAt": "2026-07-16T07:32:49.646476",
   "tasks": [
     {
       "id": "1",
@@ -35,6 +35,17 @@
       "category": "",
       "done": false,
       "created": "2026-07-16 07:27:46"
+    },
+    {
+      "id": "4",
+      "title": "напомни позвонить жене",
+      "note": "",
+      "date": "2026-07-16",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-16 07:30:07"
     }
   ]
 }
