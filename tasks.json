@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-16T07:12:18.544835",
+  "updatedAt": "2026-07-16T07:13:11.887733",
   "tasks": [
     {
       "id": "1",
@@ -13,6 +13,17 @@
       "category": "",
       "done": false,
       "created": "2026-07-16 07:11:46"
+    },
+    {
+      "id": "2",
+      "title": "Сходить покушать",
+      "note": "",
+      "date": "2026-07-17",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-16 07:13:11"
     }
   ]
 }
