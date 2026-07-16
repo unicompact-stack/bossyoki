@@ -1,6 +1,40 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-16T07:22:46.940197",
-  "tasks": []
+  "updatedAt": "2026-07-16T07:27:48.259253",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "рыбалка",
+      "note": "",
+      "date": "2026-07-16",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-16 07:23:26"
+    },
+    {
+      "id": "2",
+      "title": "позвонить другу",
+      "note": "",
+      "date": "2026-07-16",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-16 07:24:40"
+    },
+    {
+      "id": "3",
+      "title": "напомни мне съездить в город",
+      "note": "",
+      "date": "2026-07-16",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-16 07:27:46"
+    }
+  ]
 }
