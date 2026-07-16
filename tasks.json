@@ -1,51 +1,6 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-16T07:37:51.021753",
-  "tasks": [
-    {
-      "id": "1",
-      "title": "рыбалка",
-      "note": "",
-      "date": "2026-07-16",
-      "time": "",
-      "priority": "medium",
-      "category": "",
-      "done": false,
-      "created": "2026-07-16 07:23:26"
-    },
-    {
-      "id": "2",
-      "title": "позвонить другу",
-      "note": "",
-      "date": "2026-07-16",
-      "time": "",
-      "priority": "medium",
-      "category": "",
-      "done": false,
-      "created": "2026-07-16 07:24:40"
-    },
-    {
-      "id": "3",
-      "title": "напомни мне съездить в город",
-      "note": "",
-      "date": "2026-07-16",
-      "time": "",
-      "priority": "medium",
-      "category": "",
-      "done": false,
-      "created": "2026-07-16 07:27:46"
-    },
-    {
-      "id": "4",
-      "title": "напомни позвонить жене",
-      "note": "",
-      "date": "2026-07-16",
-      "time": "",
-      "priority": "medium",
-      "category": "",
-      "done": false,
-      "created": "2026-07-16 07:30:07"
-    }
-  ]
+  "updatedAt": "2026-07-16T07:42:13.237262",
+  "tasks": []
 }
