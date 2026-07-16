@@ -1,6 +1,18 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-16T08:14:59.248606",
-  "tasks": []
+  "updatedAt": "2026-07-16T08:20:00.365141",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "позвонить жене",
+      "note": "",
+      "date": "2026-07-16",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-16 08:18:24"
+    }
+  ]
 }
