@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: bossyoki-bot
+    runtime: python
+    buildCommand: pip install -r code/requirements.txt
+    startCommand: cd code && python smart_bot.py
