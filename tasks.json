@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-17T08:33:23.010157",
+  "updatedAt": "2026-07-17T08:37:01.537856",
   "tasks": [
     {
       "id": "1",
@@ -24,6 +24,17 @@
       "category": "",
       "done": false,
       "created": "2026-07-17 08:33:23"
+    },
+    {
+      "id": "3",
+      "title": "отправить пост о бензин",
+      "note": "",
+      "date": "2026-07-17",
+      "time": "пусто",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-17 08:33:49"
     }
   ]
 }
