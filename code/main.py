@@ -1,85 +1,139 @@
-#!/usr/bin/env python3
-"""BossYoki — проактивный тайм-менеджер.
-Только напоминания через VK. Без диалога.
-"""
+"""Точка входа — запуск бота BossYoki."""
 
-import vk_api
-from vk_api.utils import get_random_id
-from apscheduler.schedulers.background import BackgroundScheduler
-from config import load_config
-from tools import load_tasks
-from datetime import datetime
+import os
+import sys
+import signal
+import threading
+from http.server import HTTPServer
 
-scheduler = BackgroundScheduler()
-vk = None
-user_id = None
-
-
-def send_message(text: str):
-    """Отправить сообщение в VK."""
-    if vk and user_id:
-        try:
-            vk.messages.send(
-                user_id=user_id,
-                message=text,
-                random_id=get_random_id()
-            )
-            print(f"[VK] {text}")
-        except Exception as e:
-            print(f"[VK Error] {e}")
-
-
-def check_reminders():
-    """Проверить задачи и отправить напоминания."""
-    tasks = load_tasks()
-    now = datetime.now()
-    today = now.strftime("%Y-%m-%d")
-    current_hour = now.hour
-
-    for task in tasks:
-        if task["status"] != "active":
-            continue
-
-        deadline = task.get("deadline", "")
-
-        # Просроченные
-        if deadline and deadline < today:
-            send_message(f"⚠️ Просрочено: {task['text']}")
-            continue
-
-        # На сегодня утром (9:00)
-        if deadline == today and current_hour == 9:
-            send_message(f"📋 Сегодня: {task['text']}")
+from utils.config import load_config
+from utils.logging_config import setup_logging
+from database.models import init_db
+from database.database import Database
+from bot_instance import VKBot
+from scheduler import Scheduler
+from utils.sync import GitHubSync
+from handlers.dashboard import DashboardHandler
+from handlers.tasks import handle_tasks
+from handlers.reminders import handle_reminder
+from handlers.ai import handle_ai
 
 
 def main():
-    global vk, user_id
-
+    log = setup_logging(os.path.dirname(__file__))
     config = load_config()
-    user_id = int(config["vk_user_id"])
 
-    vk_session = vk_api.VkApi(token=config["vk_token"])
-    vk = vk_session.get_api()
+    def stop(sig, frame):
+        log.info('Остановлен.')
+        pid_file = os.path.join(os.path.dirname(__file__), 'smart_bot.pid')
+        if os.path.exists(pid_file):
+            os.remove(pid_file)
+        sys.exit(0)
 
-    # Проверка каждые 30 минут
-    scheduler.add_job(check_reminders, "interval", minutes=30, id="reminders")
-    # Утренняя проверка в 9:00
-    scheduler.add_job(check_reminders, "cron", hour=9, minute=0, id="morning")
-    # Вечерняя проверка в 18:00
-    scheduler.add_job(check_reminders, "cron", hour=18, minute=0, id="evening")
-    scheduler.start()
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
 
-    print(f"BossYoki запущен. Напоминания для user_id={user_id}")
-    print("Ctrl+C для остановки")
+    init_db()
+    db = Database()
+    sync = GitHubSync(config, db)
+    sync.load_from_github()
 
-    # Держим процесс живым
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        scheduler.shutdown()
-        print("Остановлен")
+    pid_file = os.path.join(os.path.dirname(__file__), 'smart_bot.pid')
+    with open(pid_file, 'w') as f:
+        f.write(str(os.getpid()))
+
+    vk_bot = VKBot(config)
+    vk_bot.connect()
+
+    log.info(f'Бот запущен! Группа: {config["group_id"]}')
+
+    vk_bot.send_message(config['vk_user_id'], '🟢 Бот запущен и готов к работе!')
+
+    # Health check для Render
+    def start_health_server():
+        try:
+            handler = lambda *args, **kwargs: DashboardHandler(*args, db=db, user_id=config['vk_user_id'], **kwargs)
+            server = HTTPServer(('0.0.0.0', config['port']), handler)
+            print(f'Dashboard started on port {config["port"]}', flush=True)
+            server.serve_forever()
+        except Exception as e:
+            print(f'Dashboard server error: {e}', flush=True)
+
+    health_thread = threading.Thread(target=start_health_server, daemon=True)
+    health_thread.start()
+    log.info(f'Health check на порту {config["port"]}')
+
+    # Фоновые задачи
+    scheduler = Scheduler(db, vk_bot, sync, config)
+    threading.Thread(target=scheduler.check_reminders, daemon=True).start()
+    threading.Thread(target=scheduler.periodic_sync, daemon=True).start()
+    threading.Thread(target=scheduler.check_daily_report, daemon=True).start()
+
+    # Обработка сообщений
+    for event in vk_bot.listen():
+        if event.type == vk_bot.get_event_type():
+            text = event.obj.message.get('text', '').strip()
+            user_id = event.obj.message['from_id']
+
+            if not text:
+                continue
+
+            log.info(f'← {user_id}: {text}')
+            db.save_message(user_id, 'user', text)
+
+            reply = None
+
+            if text.lower() in ['помощь', 'помоги', '!помощь', 'команды', 'help']:
+                reply = (
+                    '📌 Команды Задачника+:\n\n'
+                    '📋 Задачи:\n'
+                    '• добавить [текст] — новая задача\n'
+                    '• задачи — список задач\n'
+                    '• выполнено [номер] — отметить\n'
+                    '• удалить [номер] — удалить\n'
+                    '• отчёт — статистика\n\n'
+                    '⏰ Напоминания:\n'
+                    '• напомни через 30 минут [текст]\n'
+                    '• напомни завтра 10:00 [текст]\n'
+                    '• напоминания — список\n\n'
+                    '🤖 AI:\n'
+                    '• Любой вопрос — ответ от AI\n'
+                    '• Помощь — этот список'
+                )
+
+            if not reply:
+                reply = handle_tasks(text, user_id, db)
+            if not reply:
+                reply = handle_reminder(text, user_id, db)
+            if not reply:
+                reply = handle_ai(text, user_id, db, config)
+
+            if not reply:
+                reply = 'Не понял. Напиши "помощь" для списка команд.'
+
+            db.save_message(user_id, 'assistant', reply)
+            vk_bot.send_message(user_id, reply)
+            log.info(f'→ {user_id}: {reply[:100]}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == 'stop':
+        pid_file = os.path.join(os.path.dirname(__file__), 'smart_bot.pid')
+        if os.path.exists(pid_file):
+            with open(pid_file) as f:
+                pid = int(f.read().strip())
+            os.kill(pid, signal.SIGTERM)
+            print(f'Остановлен (PID {pid})')
+        else:
+            print('Бот не запущен')
+        sys.exit(0)
+
+    if len(sys.argv) > 1 and sys.argv[1] == 'log':
+        log_file = os.path.join(os.path.dirname(__file__), 'bossyoki.log')
+        if os.path.exists(log_file):
+            os.system(f'tail -30 "{log_file}"')
+        else:
+            print('Логов нет')
+        sys.exit(0)
+
     main()
