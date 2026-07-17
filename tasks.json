@@ -1,6 +1,18 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-17T10:25:21.318138",
-  "tasks": []
+  "updatedAt": "2026-07-17T07:26:42.815218",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "позвонить другу",
+      "note": "",
+      "date": "2026-07-17",
+      "time": "17:27",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-17 07:26:42"
+    }
+  ]
 }
