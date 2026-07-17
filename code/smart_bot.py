@@ -189,10 +189,14 @@ def get_stats(user_id):
 
 _last_sync_time = 0
 _SYNC_INTERVAL = 30  # 30 секунд минимум
+_github_loaded = False  # Блокировка до загрузки из GitHub
 
 def sync_to_github(force=False):
     """Бот пишет в GitHub tasks.json — главный источник"""
     global _last_sync_time
+    if not _github_loaded:
+        log.info('⏳ GitHub ещё не загружен, пропускаю sync')
+        return
     now = time.time()
     if not force and (now - _last_sync_time) < _SYNC_INTERVAL:
         return
@@ -1102,6 +1106,8 @@ def main():
 
     # Загружаем задачи из GitHub при старте
     load_from_github()
+    _github_loaded = True
+    log.info('✅ GitHub загружен, sync разрешён')
 
     with open(PID_FILE, 'w') as f:
         f.write(str(os.getpid()))
