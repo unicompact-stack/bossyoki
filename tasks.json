@@ -1,6 +1,18 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-17T10:17:24.964803",
-  "tasks": []
+  "updatedAt": "2026-07-17T10:18:14.525635",
+  "tasks": [
+    {
+      "id": "1",
+      "title": "сделать пост",
+      "note": "",
+      "date": "2026-07-17",
+      "time": "18:17",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-17 10:18:14"
+    }
+  ]
 }
