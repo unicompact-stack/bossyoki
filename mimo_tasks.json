@@ -212,5 +212,12 @@
     "status": "done",
     "created": "2026-07-21T16:38:09.063039+03:00",
     "result": "Adapted post with photos sent - group 75319726 identified"
+  },
+  {
+    "id": 27,
+    "text": "да",
+    "user_id": 114439622,
+    "status": "pending",
+    "created": "2026-07-21T16:51:33.725310+03:00"
   }
 ]
