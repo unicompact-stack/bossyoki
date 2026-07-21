@@ -73,7 +73,8 @@
     "id": 9,
     "text": "давай теперь проверь по циклу все ли сделали и дай план",
     "user_id": 114439622,
-    "status": "pending",
-    "created": "2026-07-21T14:34:51.174779+03:00"
+    "status": "done",
+    "created": "2026-07-21T14:34:51.174779+03:00",
+    "result": "Full cycle check completed - summary sent to VK"
   }
 ]
