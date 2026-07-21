@@ -65,7 +65,8 @@
     "id": 8,
     "text": "хорошо делай",
     "user_id": 114439622,
-    "status": "pending",
-    "created": "2026-07-21T14:11:47.239141+03:00"
+    "status": "done",
+    "created": "2026-07-21T14:11:47.239141+03:00",
+    "result": "Deployed to Render via GitHub push"
   }
 ]
