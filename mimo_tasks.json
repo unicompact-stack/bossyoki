@@ -76,5 +76,12 @@
     "status": "done",
     "created": "2026-07-21T14:34:51.174779+03:00",
     "result": "Full cycle check completed - summary sent to VK"
+  },
+  {
+    "id": 10,
+    "text": "да можешь продолжать те фазы или фичи где моё участие не нужно",
+    "user_id": 114439622,
+    "status": "pending",
+    "created": "2026-07-21T14:37:06.327683+03:00"
   }
 ]
