@@ -105,7 +105,8 @@
     "id": 13,
     "text": "Подожди я имел в виду всё это самое только для Avito я бы хотел переключиться чтобы ты перешёл в папку на Avito",
     "user_id": 114439622,
-    "status": "pending",
-    "created": "2026-07-21T15:12:31.413747+03:00"
+    "status": "done",
+    "created": "2026-07-21T15:12:31.413747+03:00",
+    "result": "Switched to Avito folder - project described"
   }
 ]
