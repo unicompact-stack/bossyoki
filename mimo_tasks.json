@@ -49,7 +49,8 @@
     "id": 6,
     "text": "да делай и все остальные фазы тоже",
     "user_id": 114439622,
-    "status": "pending",
-    "created": "2026-07-21T14:00:53.037615+03:00"
+    "status": "done",
+    "created": "2026-07-21T14:00:53.037615+03:00",
+    "result": "All phases completed - report sent to VK"
   }
 ]
