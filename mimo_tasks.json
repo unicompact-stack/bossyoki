@@ -116,5 +116,12 @@
     "status": "done",
     "created": "2026-07-21T15:17:07.199370+03:00",
     "result": "Avito deploy files checked - render.yaml + server.py ready"
+  },
+  {
+    "id": 15,
+    "text": "проверь интерфейс и проверь планы может какие-то есть планы не сделано",
+    "user_id": 114439622,
+    "status": "pending",
+    "created": "2026-07-21T15:22:42.884031+03:00"
   }
 ]
