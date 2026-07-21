@@ -161,7 +161,8 @@
     "id": 20,
     "text": "вариант а потом когда надо отключить и чтобы всё работало как прежде",
     "user_id": 114439622,
-    "status": "pending",
-    "created": "2026-07-21T15:57:24.578954+03:00"
+    "status": "done",
+    "created": "2026-07-21T15:57:24.578954+03:00",
+    "result": "Variant A plan sent - MiMo with fallback to vk_agent"
   }
 ]
