@@ -188,5 +188,12 @@
     "status": "done",
     "created": "2026-07-21T16:22:46.794971+03:00",
     "result": "Travel bot workflow clarified - search + copy + adapt"
+  },
+  {
+    "id": 24,
+    "text": "да пока так потом усложнять будем давай найди свежие посты",
+    "user_id": 114439622,
+    "status": "pending",
+    "created": "2026-07-21T16:27:40.183975+03:00"
   }
 ]
