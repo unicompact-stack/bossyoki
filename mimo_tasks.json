@@ -204,5 +204,12 @@
     "status": "done",
     "created": "2026-07-21T16:33:54.759339+03:00",
     "result": "Adapted post sent - waiting for group selection"
+  },
+  {
+    "id": 26,
+    "text": "там где тур агентство куда бот навичок отправлял и не забудь картинки тоже взять и вставить",
+    "user_id": 114439622,
+    "status": "pending",
+    "created": "2026-07-21T16:38:09.063039+03:00"
   }
 ]
