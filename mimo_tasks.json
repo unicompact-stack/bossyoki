@@ -41,7 +41,8 @@
     "id": 5,
     "text": "адд не надо остальное можешь",
     "user_id": 114439622,
-    "status": "pending",
-    "created": "2026-07-21T13:52:52.235440+03:00"
+    "status": "done",
+    "created": "2026-07-21T13:52:52.235440+03:00",
+    "result": "GitHub Actions + AI prompt fixed"
   }
 ]
