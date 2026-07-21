@@ -124,5 +124,12 @@
     "status": "done",
     "created": "2026-07-21T15:22:42.884031+03:00",
     "result": "Interface and plans checked - all 6 phases done"
+  },
+  {
+    "id": 16,
+    "text": "проверь код на ошибки и нет ли проблем в мобильной версии если я там открою",
+    "user_id": 114439622,
+    "status": "pending",
+    "created": "2026-07-21T15:39:14.669854+03:00"
   }
 ]
