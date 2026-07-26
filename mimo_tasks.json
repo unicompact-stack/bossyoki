@@ -381,5 +381,12 @@
     "created": "2026-07-26T10:42:13.190980+03:00",
     "result": "Выполнено MiMo Code",
     "completed_at": "2026-07-26T10:44:11.682468"
+  },
+  {
+    "id": 46,
+    "text": "тест cron из MiMo Code",
+    "user_id": 114439622,
+    "status": "pending",
+    "created": "2026-07-26T10:49:24.532468"
   }
 ]
