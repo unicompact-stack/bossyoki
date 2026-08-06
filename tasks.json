@@ -1,6 +1,315 @@
 {
   "version": "2.0",
   "source": "vk_bot",
-  "updatedAt": "2026-07-18T08:44:32.677564",
-  "tasks": []
+  "updatedAt": "2026-08-06T17:19:07.286981+03:00",
+  "tasks": [
+    {
+      "id": "3",
+      "title": "Купить молоко",
+      "note": "1740",
+      "date": "",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-19 14:30:19.069776"
+    },
+    {
+      "id": "4",
+      "title": "позвонить другу",
+      "note": "",
+      "date": "2026-07-19",
+      "time": "15:09",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-19 15:04:45.450306"
+    },
+    {
+      "id": "5",
+      "title": "ещё задачу",
+      "note": "",
+      "date": "",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-19 15:38:00.913062"
+    },
+    {
+      "id": "6",
+      "title": "ещё помыть машину через 5 минут",
+      "note": "",
+      "date": "",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-19 15:47:27.130466"
+    },
+    {
+      "id": "7",
+      "title": "купить бензин",
+      "note": "",
+      "date": "2026-07-19",
+      "time": "19:30",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-19 16:18:29.270372"
+    },
+    {
+      "id": "8",
+      "title": "включить планер",
+      "note": "",
+      "date": "2026-07-20",
+      "time": "09:00",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-19 16:50:33.258605"
+    },
+    {
+      "id": "9",
+      "title": "съездить на участок",
+      "note": "",
+      "date": "2026-07-19",
+      "time": "20:10",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-19 17:04:55.018384"
+    },
+    {
+      "id": "10",
+      "title": "окна",
+      "note": "",
+      "date": "2026-07-21",
+      "time": "10:00",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-20 18:14:58.146653"
+    },
+    {
+      "id": "11",
+      "title": "задау написать план по бот новичок",
+      "note": "",
+      "date": "",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-21 20:43:57.209279"
+    },
+    {
+      "id": "12",
+      "title": "Проверить работу крон",
+      "note": "",
+      "date": "2026-07-22",
+      "time": "",
+      "priority": "high",
+      "category": "",
+      "done": true,
+      "created": "2026-07-21 21:26:56.689252"
+    },
+    {
+      "id": "13",
+      "title": "проверить работу крон",
+      "note": "",
+      "date": "2026-07-22",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-21 21:28:30.258881"
+    },
+    {
+      "id": "14",
+      "title": "Купить молоко",
+      "note": "",
+      "date": "2026-07-24",
+      "time": "12:00",
+      "priority": "high",
+      "category": "",
+      "done": true,
+      "created": "2026-07-23 21:18:00.922113"
+    },
+    {
+      "id": "15",
+      "title": "монтаж балок в доме",
+      "note": "",
+      "date": "2026-07-24",
+      "time": "18:30",
+      "priority": "high",
+      "category": "",
+      "done": true,
+      "created": "2026-07-24 09:22:26.190899"
+    },
+    {
+      "id": "16",
+      "title": "Пробежать 3 круга",
+      "note": "",
+      "date": "2026-07-24",
+      "time": "17:00",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-24 09:24:07.917594"
+    },
+    {
+      "id": "17",
+      "title": "Заработать 100 рублей",
+      "note": "",
+      "date": "2026-07-24",
+      "time": "19:00",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-24 09:25:21.129298"
+    },
+    {
+      "id": "18",
+      "title": "пробежка",
+      "note": "",
+      "date": "2026-07-24",
+      "time": "17:00",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-24 09:29:57.922985"
+    },
+    {
+      "id": "19",
+      "title": "монтаж балок в доме",
+      "note": "",
+      "date": "2026-07-25",
+      "time": "19:00",
+      "priority": "high",
+      "category": "",
+      "done": true,
+      "created": "2026-07-25 09:07:38.978276"
+    },
+    {
+      "id": "21",
+      "title": "Поиск фриланс-проектов",
+      "note": "",
+      "date": "2026-07-25",
+      "time": "2:00",
+      "priority": "high",
+      "category": "",
+      "done": true,
+      "created": "2026-07-25 09:23:47.590756"
+    },
+    {
+      "id": "22",
+      "title": "Поиск фриланс-проектов",
+      "note": "",
+      "date": "2026-07-25",
+      "time": "1:00",
+      "priority": "high",
+      "category": "",
+      "done": false,
+      "created": "2026-07-25 14:00:59.275539"
+    },
+    {
+      "id": "23",
+      "title": "Купить краску и покрасить трубы",
+      "note": "",
+      "date": "2026-07-25",
+      "time": "20:00",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-25 14:27:10.251725"
+    },
+    {
+      "id": "24",
+      "title": "помыть казан",
+      "note": "",
+      "date": "2026-07-26",
+      "time": "пусто",
+      "priority": "medium",
+      "category": "",
+      "done": true,
+      "created": "2026-07-25 17:20:43.551945"
+    },
+    {
+      "id": "25",
+      "title": "монтаж балок в доме",
+      "note": "",
+      "date": "2026-07-29",
+      "time": "19:00",
+      "priority": "high",
+      "category": "",
+      "done": false,
+      "created": "2026-07-28 18:23:40.393350"
+    },
+    {
+      "id": "26",
+      "title": "Установить газовую плиту",
+      "note": "",
+      "date": "2026-07-29",
+      "time": "09:00",
+      "priority": "high",
+      "category": "",
+      "done": false,
+      "created": "2026-07-28 18:26:52.699829"
+    },
+    {
+      "id": "27",
+      "title": "Заклеить наушники",
+      "note": "",
+      "date": "2026-08-01",
+      "time": "",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-30 11:19:56.610589"
+    },
+    {
+      "id": "28",
+      "title": "Заклеить наушники",
+      "note": "",
+      "date": "2026-07-30",
+      "time": "18:00",
+      "priority": "medium",
+      "category": "",
+      "done": false,
+      "created": "2026-07-30 11:20:11.876725"
+    },
+    {
+      "id": "29",
+      "title": "Заклеить наушники",
+      "note": "",
+      "date": "2026-07-30",
+      "time": "18:00",
+      "priority": "high",
+      "category": "",
+      "done": false,
+      "created": "2026-07-30 11:20:42.495422"
+    },
+    {
+      "id": "30",
+      "title": "Заклеить наушники",
+      "note": "",
+      "date": "2026-07-30",
+      "time": "18:00",
+      "priority": "high",
+      "category": "",
+      "done": false,
+      "created": "2026-07-30 11:21:12.126839"
+    },
+    {
+      "id": "31",
+      "title": "Заклеить наушники",
+      "note": "",
+      "date": "2026-07-30",
+      "time": "18:00",
+      "priority": "high",
+      "category": "",
+      "done": false,
+      "created": "2026-07-30 11:21:35.324614"
+    }
+  ]
 }
